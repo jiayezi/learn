@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    成绩赋分和排名
+{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <p>选择功能</p>
+    <ol class="navbar-nav">
+        <li>
+            <form id="uploadForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" name="document" id="fileInput" hidden onchange="uploadFile()">
+                <button type="button" onclick="document.getElementById('fileInput').click();">上传文档</button>
+            </form>
+        </li>
+        <li><button>成绩赋分</button></li>
+        <li><button>计算排名</button></li>
+        <li><button>组合成绩</button></li>
+        <li><button>下载文档</button></li>
+    </ol>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+function uploadFile() {
+    document.getElementById("uploadForm").submit();
+}
+</script>
+{% endblock extra_js %}
