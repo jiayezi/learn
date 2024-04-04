@@ -14,14 +14,15 @@
         <li><input type="file" name="file" id="id_file" required></li>
         <li><button type="submit">上传文件</button></li>
     </form>
-        <li><button>成绩赋分</button></li>
-        <li><button>计算排名</button></li>
-        <li><button>组合成绩</button></li>
-        <li><button>下载文档</button></li>
+
+        {% if request.GET.success %}
+            <li><a href="{% url 'modify_file' request.GET.file_id %}"><button>成绩赋分</button></a></li>
+            <li><button>计算排名</button></li>
+            <li><button>组合成绩</button></li>
+            <li><a href="{% url 'download_file' request.GET.file_id %}"><button>下载文档</button></a></li>
+            <p>文件上传成功</p>
+        {% endif %}
     </ol>
-    {% if request.GET.success %}
-        <p>文件上传成功</p>
-    {% endif %}
 </div>
 
 {% endblock content %}
