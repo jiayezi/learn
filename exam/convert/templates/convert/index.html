@@ -16,9 +16,9 @@
     </form>
 
         {% if request.GET.success %}
-            <li><a href="{% url 'modify_file' request.GET.file_id %}"><button>成绩赋分</button></a></li>
-            <li><button>计算排名</button></li>
-            <li><button>组合成绩</button></li>
+            <li><a href="{% url 'convert_page' request.GET.file_id %}"><button>成绩赋分</button></a></li>
+            <li><a href="{% url 'rank_page' request.GET.file_id %}"><button>计算排名</button></a></li>
+            <li><a href="{% url 'sum_page' request.GET.file_id %}"><button>组合成绩</button></a></li>
             <li><a href="{% url 'download_file' request.GET.file_id %}"><button>下载文档</button></a></li>
             <p>文件上传成功</p>
         {% endif %}
