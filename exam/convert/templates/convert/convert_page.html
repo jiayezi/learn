@@ -19,17 +19,24 @@
     </script>
 </head>
 <body>
-<form method="post">
-        {% csrf_token %}
-        <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()">
-        <label for="selectAll">全选</label><br>
-        <!-- Loop through items and create checkboxes -->
-        {% for item in items %}
-            <input type="checkbox" id="{{ item }}" name="selected_items" value="{{ item }}">
-            <label for="{{ item }}">{{ item }}</label><br>
-        {% endfor %}
-        <br>
-        <input type="submit" value="提交">
-    </form>
+    <div>
+    <!--使用下拉列表展示赋分模板-->
+    </div>
+    <div>
+        <!--使用复选框展示科目-->
+        <form method="post">
+            {% csrf_token %}
+            <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()">
+            <label for="selectAll">全选</label><br>
+            <!-- Loop through items and create checkboxes -->
+            {% for item in items %}
+                <input type="checkbox" id="{{ item }}" name="selected_items" value="{{ item }}">
+                <label for="{{ item }}">{{ item }}</label><br>
+            {% endfor %}
+            <br>
+            <input type="submit" value="提交">
+        </form>
+    </div>
+
 </body>
 </html>
