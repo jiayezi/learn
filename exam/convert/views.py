@@ -2,8 +2,9 @@ import os
 
 from openpyxl import load_workbook
 from django.shortcuts import render, redirect, get_object_or_404
+
 from .forms import UploadFileForm
-from .models import UploadedFile
+from .models import UploadedFile, ConvertConfig
 from django.http import FileResponse, HttpResponse
 from django.urls import reverse
 
@@ -68,6 +69,16 @@ def index(request):
 
 def convert_page(request, file_id):
     if request.method == 'POST':
+        # 获取被选中的下拉列表的值
+        selected_config_name = request.POST.get('config')  # 获取用户提交的config_name
+        # 查询数据库获取对应的ConvertConfig对象
+        selected_config = ConvertConfig.objects.get(config_name=selected_config_name)
+        # 使用related_name获取关联的Grade对象列表
+        grades = selected_config.grade_set.all()
+        grade_info = ""
+        for grade in grades:
+            grade_info += f"Grade Name: {grade.grade_name}, High Score: {grade.high_score}, Low Score: {grade.low_score}, Percent: {grade.percent}<br>"
+
         # 获取被选中的复选框的值
         selected_items = request.POST.getlist('selected_items')
 
@@ -77,15 +88,21 @@ def convert_page(request, file_id):
         #     MyModel.objects.create(name=item)
 
         # 返回一个简单的响应
-        return HttpResponse("Selected items: " + ", ".join(selected_items))
+        text = f'选择的科目：{", ".join(selected_items)}<br>'
+        text += f'选择的配置：{selected_config}<br>'
+        text += f'配置详情：{grade_info}<br>'
+        return HttpResponse(text)
     else:
         subjects = []
         for i, item in enumerate(title):
             if item[:2] in possible_subjects:
                 subjects.append(item)
 
+        configs = ConvertConfig.objects.values_list('config_name', flat=True)
+
         context = {
             'items': subjects,
+            'configs': configs,
         }
         return render(request, 'convert/convert_page.html', context)
 

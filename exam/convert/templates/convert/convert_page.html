@@ -20,12 +20,18 @@
 </head>
 <body>
     <div>
-    <!--使用下拉列表展示赋分模板-->
-    </div>
-    <div>
-        <!--使用复选框展示科目-->
         <form method="post">
             {% csrf_token %}
+            <!--使用下拉列表展示赋分模板-->
+            <label for="config">赋分模版:</label>
+            <br>
+            <select id="config" name="config">
+            {% for config in configs %}
+                <option value="{{ config }}">{{ config }}</option>
+            {% endfor %}
+            </select>
+            <br>
+            <!--使用复选框展示科目-->
             <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()">
             <label for="selectAll">全选</label><br>
             <!-- Loop through items and create checkboxes -->
