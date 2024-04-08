@@ -8,7 +8,7 @@ from .models import UploadedFile, ConvertConfig
 from django.http import FileResponse, HttpResponse
 from django.urls import reverse
 
-title = None
+title = []
 student_list = []
 possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
                      '生物', '总分', '总成绩', '全科')
@@ -71,27 +71,11 @@ def convert_page(request, file_id):
     if request.method == 'POST':
         # 获取被选中的下拉列表的值
         selected_config_name = request.POST.get('config')  # 获取用户提交的config_name
-        # 查询数据库获取对应的ConvertConfig对象
-        selected_config = ConvertConfig.objects.get(config_name=selected_config_name)
-        # 使用related_name获取关联的Grade对象列表
-        grades = selected_config.grade_set.all()
-        grade_info = ""
-        for grade in grades:
-            grade_info += f"Grade Name: {grade.grade_name}, High Score: {grade.high_score}, Low Score: {grade.low_score}, Percent: {grade.percent}<br>"
-
         # 获取被选中的复选框的值
         selected_items = request.POST.getlist('selected_items')
 
-        # 在这里进行进一步的处理，例如保存到数据库或执行其他操作
-        # 例如，假设您想要将被选中的项目保存到数据库中：
-        # for item in selected_items:
-        #     MyModel.objects.create(name=item)
-
-        # 返回一个简单的响应
-        text = f'选择的科目：{", ".join(selected_items)}<br>'
-        text += f'选择的配置：{selected_config}<br>'
-        text += f'配置详情：{grade_info}<br>'
-        return HttpResponse(text)
+        convert(selected_config_name, selected_items)
+        return redirect(request.path)
     else:
         subjects = []
         for i, item in enumerate(title):
@@ -107,8 +91,45 @@ def convert_page(request, file_id):
         return render(request, 'convert/convert_page.html', context)
 
 
-def convert(request, file_id):
+def convert(config_name, selected_subject_name):
     """计算赋分成绩"""
+    global title
+    # 查询数据库获取对应的ConvertConfig对象
+    selected_config = ConvertConfig.objects.get(config_name=config_name)
+    # 使用related_name获取关联的Grade对象列表
+    grades = selected_config.grade_set.all()
+    # 获取科目索引
+    selected_subject_index = []
+    for name in selected_subject_name:
+        idx = title.index(name)
+        selected_subject_index.append(idx)
+
+    # 检查
+    grade_info = ""
+    for grade in grades:
+        grade_info += f"等级: {grade.grade_name}, 高分: {grade.high_score}, 低分: {grade.low_score}, 占比: {grade.percent}\n"
+    text = f'选择的科目：{", ".join(selected_subject_name)}\n'
+    text += f'选择的配置：{selected_config}\n'
+    text += f'配置详情：\n{grade_info}'
+    print(text)
+
+    # 加载配置文件，读取领先率、赋分区间和等级
+    # rate_exceed = []
+    # rate_dist = []
+    # grade_dict = {}
+    # with open(f'conf/{cbox.get()}', 'rt', encoding='utf8') as f:
+    #     data = f.read()
+    # row_list = data.split('\n')
+    # rate_sum = 0
+    # for index, row in enumerate(row_list):
+    #     value_list = row.split('\t')
+    #     grade_dict[index] = value_list[0]
+    #     rg = (float(value_list[1]), float(value_list[2]))
+    #     rate_dist.append(rg)
+    #     rate_sum += float(value_list[3])
+    #     value = (100 - rate_sum) / 100.0
+    #     rate_exceed.append(value)
+
     # uploaded_file = get_object_or_404(UploadedFile, id=file_id)
     # # 检查文件是否存在
     # if uploaded_file.file and os.path.exists(uploaded_file.file.path):
@@ -124,7 +145,6 @@ def convert(request, file_id):
     #     url = reverse('convert') + f'?success=1&file_id={uploaded_file.id}'
     #     # 重定向回上传页面，或返回一个成功修改的消息
     #     # return redirect(url)
-    return render(request, 'convert/convert_page.html')
 
 
 def rank_page(request, file_id):
