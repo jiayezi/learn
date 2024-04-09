@@ -2,7 +2,9 @@ from openpyxl import load_workbook, Workbook
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import UploadFileForm
 from .models import UploadedFile, ConvertConfig
-from django.http import FileResponse
+from django.http import HttpResponse
+from io import BytesIO
+
 
 possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
                      '生物', '总分', '总成绩', '全科')
@@ -196,23 +198,10 @@ def convert(request, config_name, selected_subject_name):
             student['row'].append(round(converts))
         title.append(f'{subject}等级')
         title.append(f'{subject}赋分')
-    print(request.session.get('title', []))
 
-    # uploaded_file = get_object_or_404(UploadedFile, id=file_id)
-    # # 检查文件是否存在
-    # if uploaded_file.file and os.path.exists(uploaded_file.file.path):
-    #     # 使用 openpyxl 打开 Excel 文件
-    #     workbook = load_workbook(uploaded_file.file.path)
-    #     # 对 Excel 文件进行修改
-    #     # 例如，修改第一个工作表的 A1 单元格的值
-    #     sheet = workbook.active
-    #     sheet['A1'] = '修改后的值'
-    #     # 保存修改后的 Excel 文件
-    #     workbook.save(uploaded_file.file.path)
-    #     # 构建带参数的 URL
-    #     url = reverse('convert') + f'?success=1&file_id={uploaded_file.id}'
-    #     # 重定向回上传页面，或返回一个成功修改的消息
-    #     # return redirect(url)
+    # 将修改后的数据保存回session中
+    request.session['title'] = title
+    request.session['student_list'] = student_list
 
 
 def rank_page(request, file_id):
@@ -226,19 +215,29 @@ def sum_page(request, file_id):
 
 
 def download_file(request):
+    # 获取或使用会话中的数据
+    title = request.session.get('title', [])
+    student_list = request.session.get('student_list', [])
+
     # 生成Excel文件
     wb = Workbook(write_only=True)
     ws = wb.create_sheet()
+    ws.append(title)
+    for student in student_list:
+        ws.append(student['row'])
 
-    pass
-    # 获取上传的文件对象
-    # uploaded_file = get_object_or_404(UploadedFile, id=file_id)
-    #
-    # # 创建一个文件响应对象来发送文件给客户端
-    # response = FileResponse(uploaded_file.file.open('rb'))
-    # response['Content-Disposition'] = f'attachment; filename="{uploaded_file.file.name}"'
-    #
-    # return response
+    # 将Excel数据写入BytesIO对象
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    # 构建HTTP响应以供下载
+    response = HttpResponse(
+        output.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="students.xlsx"'
+
+    return response
 
 
 # 删除数据库中的所有文件记录和文件本身
