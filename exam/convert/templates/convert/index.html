@@ -9,19 +9,10 @@
 <div class="container">
     <p>选择功能</p>
     <ol class="navbar-nav">
-        <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <li><input type="file" name="file" id="id_file" accept=".xlsx" required></li>
-        <li><button type="submit">上传文件</button></li>
-        </form>
-
-        {% if request.GET.success %}
-            <li><a href="{% url 'convert_page' %}"><button>成绩赋分</button></a></li>
-            <li><a href="{% url 'rank_page' %}"><button>计算排名</button></a></li>
-            <li><a href="{% url 'sum_page' %}"><button>组合成绩</button></a></li>
-            <li><a href="{% url 'download_file' request.GET.file_id %}"><button>下载文档</button></a></li>
-            <p>文件上传成功</p>
-        {% endif %}
+        <li><a href="{% url 'convert_page' %}"><button>成绩赋分</button></a></li>
+        <li><a href="{% url 'rank_page' %}"><button>计算排名</button></a></li>
+        <li><a href="{% url 'sum_page' %}"><button>组合成绩</button></a></li>
+        <li><a href="{% url 'download_file' %}"><button>下载文档</button></a></li>
     </ol>
 </div>
 

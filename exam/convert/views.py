@@ -1,4 +1,4 @@
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import UploadFileForm
 from .models import UploadedFile, ConvertConfig
@@ -6,6 +6,14 @@ from django.http import FileResponse
 
 possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
                      '生物', '总分', '总成绩', '全科')
+
+
+def sort_rule(score):
+    """定义排序规则"""
+    if isinstance(score, str) or score is None:
+        return 0
+    else:
+        return float(score)
 
 
 def open_file(request, file_id):
@@ -36,7 +44,7 @@ def open_file(request, file_id):
     wb.close()
 
 
-def index(request):
+def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
@@ -50,14 +58,14 @@ def index(request):
             # 交给其他函数读取文件内容
             open_file(request, uploaded_file.id)
 
-            # 将title再次存储到session中。redirect函数默认会将重定向的请求视为全新的请求，这意味着会创建一个新的session，而不是继续使用原始请求的session。这可能会导致在新的请求中无法访问到之前存储在session中的数据。
-            request.session['title'] = request.session['title']
-            request.session['student_list'] = request.session['student_list']
-            # 重定向并添加查询参数来指示成功上传，添加文件 ID 作为查询参数
-            return redirect(f'{request.path}?success=1&file_id={uploaded_file.id}')
+            # 如果使用redirect，需要将title再次存储到session中，因为redirect函数默认会将重定向的请求视为全新的请求，这意味着会创建一个新的session，而不是继续使用原始请求的session。这可能会导致在新的请求中无法访问到之前存储在session中的数据。
+            # request.session['title'] = request.session['title']
+            # request.session['student_list'] = request.session['student_list']
+
+            return render(request, 'convert/index.html')
     else:
         form = UploadFileForm()
-    return render(request, 'convert/index.html', {'form': form})
+    return render(request, 'convert/upload_file.html', {'form': form})
 
 
 def convert_page(request):
@@ -72,7 +80,6 @@ def convert_page(request):
     else:
         # 根据需要获取或使用会话中的数据
         title = request.session.get('title', [])
-        print(title)
         # student_list = request.session.get('student_list', [])
         subjects = []
         for i, item in enumerate(title):
@@ -114,21 +121,82 @@ def convert(request, config_name, selected_subject_name):
     print(text)
 
     # 加载配置文件，读取领先率、赋分区间和等级
-    # rate_exceed = []
-    # rate_dist = []
-    # grade_dict = {}
-    # with open(f'conf/{cbox.get()}', 'rt', encoding='utf8') as f:
-    #     data = f.read()
-    # row_list = data.split('\n')
-    # rate_sum = 0
-    # for index, row in enumerate(row_list):
-    #     value_list = row.split('\t')
-    #     grade_dict[index] = value_list[0]
-    #     rg = (float(value_list[1]), float(value_list[2]))
-    #     rate_dist.append(rg)
-    #     rate_sum += float(value_list[3])
-    #     value = (100 - rate_sum) / 100.0
-    #     rate_exceed.append(value)
+    rate_exceed = []
+    rate_dist = []
+    grade_dict = {}
+    rate_sum = 0
+    for index, grade in enumerate(grades):
+        grade_dict[index] = grade.grade_name
+        rate_dist.append((grade.high_score, grade.low_score))
+        rate_sum += grade.percent
+        value = (100 - rate_sum) / 100.0
+        rate_exceed.append(value)
+
+    for sub_index, subject in enumerate(selected_subject_name):
+        score_index = selected_subject_index[sub_index]
+        student_list.sort(key=lambda x: sort_rule(x['row'][score_index]), reverse=True)
+
+        # 获取得分大于0分的人数、获取大于0分的最小原始分
+        student_data_reverse = student_list[::-1]
+        student_num = len(student_data_reverse)
+        min_score = 0.0
+        for row_index, student in enumerate(student_data_reverse):
+            if isinstance(student['row'][score_index], str) or student['row'][score_index] is None:
+                continue
+            if float(student['row'][score_index]) > 0.0:
+                student_num -= row_index
+                min_score = float(student['row'][score_index])
+                break
+
+        # 获取原始分等级区间
+        rate_src = [[float(student_list[0]['row'][score_index])]]
+        rate = (student_num - 1) / student_num
+        previous_score = -1  # 上个分数，初始值为-1
+        temp_dj = 0  # 初始等级和索引
+        for row_index, student in enumerate(student_list):
+            current_score_str = student['row'][score_index]
+            if not isinstance(current_score_str, (int, float)):
+                continue
+
+            current_score = float(current_score_str)
+            if current_score != previous_score:
+                previous_score = current_score
+                rate = (student_num - row_index - 1) / student_num  # 领先率
+                for e_index, value in enumerate(rate_exceed):
+                    # 如果这个学生的领先率大于rate_exceed里的某一个值，并且temp_dj与上次不同，就把当前分数添加到rate_src里面，然后结束内层循环。如果这个学生的领先率大于rate_exceed里的某一个值，并且temp_dj与上次相同，也要结束内层循环，所以break不能写在if内部。
+                    if rate >= value:
+                        if temp_dj != e_index:
+                            temp_dj = e_index
+                            rate_src[temp_dj - 1].append(
+                                float(student_list[row_index - 1]['row'][score_index]))
+                            rate_src.append([float(student['row'][score_index])])
+                        break
+        # rate_src[-1].append(float(student_data[-1][extra + i]))
+        rate_src[-1].append(min_score)
+        # print(f'{subject}原始分等级区间：{rate_src}')
+
+        # 计算赋分成绩
+        for student in student_list:
+            score = student['row'][score_index]
+            if not isinstance(score, (int, float)) or score == 0:
+                student['row'].append('')
+                student['row'].append('')
+                continue
+            xsdj = 0
+            for index, dj_score in enumerate(rate_src):
+                if dj_score[0] >= score >= dj_score[1]:
+                    xsdj = index
+                    break
+            m = rate_src[xsdj][1]
+            n = rate_src[xsdj][0]
+            a = rate_dist[xsdj][1]
+            b = rate_dist[xsdj][0]
+            converts = (b * (score - m) + a * (n - score)) / (n - m)
+            student['row'].append(grade_dict[xsdj])
+            student['row'].append(round(converts))
+        title.append(f'{subject}等级')
+        title.append(f'{subject}赋分')
+    print(request.session.get('title', []))
 
     # uploaded_file = get_object_or_404(UploadedFile, id=file_id)
     # # 检查文件是否存在
@@ -157,15 +225,20 @@ def sum_page(request, file_id):
     return render(request, 'convert/sum_page.html')
 
 
-def download_file(request, file_id):
+def download_file(request):
+    # 生成Excel文件
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet()
+
+    pass
     # 获取上传的文件对象
-    uploaded_file = get_object_or_404(UploadedFile, id=file_id)
-
-    # 创建一个文件响应对象来发送文件给客户端
-    response = FileResponse(uploaded_file.file.open('rb'))
-    response['Content-Disposition'] = f'attachment; filename="{uploaded_file.file.name}"'
-
-    return response
+    # uploaded_file = get_object_or_404(UploadedFile, id=file_id)
+    #
+    # # 创建一个文件响应对象来发送文件给客户端
+    # response = FileResponse(uploaded_file.file.open('rb'))
+    # response['Content-Disposition'] = f'attachment; filename="{uploaded_file.file.name}"'
+    #
+    # return response
 
 
 # 删除数据库中的所有文件记录和文件本身
