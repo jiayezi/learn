@@ -125,3 +125,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# SESSION_COOKIE_AGE = 3600  # 设置session持续时间为1小时
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # session在浏览器关闭后立即过期

@@ -1,32 +1,36 @@
-import os
-
 from openpyxl import load_workbook
 from django.shortcuts import render, redirect, get_object_or_404
-
 from .forms import UploadFileForm
 from .models import UploadedFile, ConvertConfig
-from django.http import FileResponse, HttpResponse
-from django.urls import reverse
+from django.http import FileResponse
 
-title = []
-student_list = []
 possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
                      '生物', '总分', '总成绩', '全科')
 
 
-def open_file(file_id):
+def open_file(request, file_id):
     """打开Excel，读取数据"""
-    # info_text.set('正在读取数据')
     uploaded_file = get_object_or_404(UploadedFile, id=file_id)
     wb = load_workbook(uploaded_file.file.path, read_only=True)
     ws = wb.active
 
+    # 从session中获取或设置student_list和title
+    if 'student_list' not in request.session:
+        request.session['student_list'] = []
+    if 'title' not in request.session:
+        request.session['title'] = []
+
+    student_list = request.session['student_list']
+    title = request.session['title']
+    # 清空现有数据
+    title.clear()
+    student_list.clear()
+
     # 存为对象
-    global title
     student_list.clear()
     for i, row in enumerate(ws.values):
         if i == 0:
-            title = list(row)
+            title.extend(list(row))
             continue
         student_list.append({'row': list(row)})
     wb.close()
@@ -37,29 +41,18 @@ def index(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = form.save()
-            print(uploaded_file.id, uploaded_file.file.name)
+            # print(uploaded_file.id, uploaded_file.file.name)
             # myfile = request.FILES['file']
             # print(myfile.name)
 
             # 读取当前文件
             # with uploaded_file.file.open('rb') as file:
-            # 查找指定文件并读取
-            # row_data = UploadedFile.objects.get(id=uploaded_file.id)
-            # 读取文件内容
-            open_file(uploaded_file.id)
-            # 删除数据库中的当前文件记录和文件本身
-            # print('开始删除文件...')
-            # file.delete()
-            # print('删除成功')
+            # 交给其他函数读取文件内容
+            open_file(request, uploaded_file.id)
 
-            # 删除数据库中的所有文件记录和文件本身
-            # all_files = UploadedFile.objects.all()
-            # for f in all_files:
-            #     print(f.file)
-            #     f.delete()
-
-            # 重定向到相同的 URL，避免文件重复上传
-            # return redirect('index')
+            # 将title再次存储到session中。redirect函数默认会将重定向的请求视为全新的请求，这意味着会创建一个新的session，而不是继续使用原始请求的session。这可能会导致在新的请求中无法访问到之前存储在session中的数据。
+            request.session['title'] = request.session['title']
+            request.session['student_list'] = request.session['student_list']
             # 重定向并添加查询参数来指示成功上传，添加文件 ID 作为查询参数
             return redirect(f'{request.path}?success=1&file_id={uploaded_file.id}')
     else:
@@ -67,16 +60,20 @@ def index(request):
     return render(request, 'convert/index.html', {'form': form})
 
 
-def convert_page(request, file_id):
+def convert_page(request):
     if request.method == 'POST':
         # 获取被选中的下拉列表的值
         selected_config_name = request.POST.get('config')  # 获取用户提交的config_name
         # 获取被选中的复选框的值
         selected_items = request.POST.getlist('selected_items')
-
-        convert(selected_config_name, selected_items)
+        # 交给其他函数处理数据
+        convert(request, selected_config_name, selected_items)
         return redirect(request.path)
     else:
+        # 根据需要获取或使用会话中的数据
+        title = request.session.get('title', [])
+        print(title)
+        # student_list = request.session.get('student_list', [])
         subjects = []
         for i, item in enumerate(title):
             if item[:2] in possible_subjects:
@@ -91,9 +88,12 @@ def convert_page(request, file_id):
         return render(request, 'convert/convert_page.html', context)
 
 
-def convert(config_name, selected_subject_name):
+def convert(request, config_name, selected_subject_name):
     """计算赋分成绩"""
-    global title
+    # 根据需要获取或使用会话中的数据
+    title = request.session.get('title', [])
+    student_list = request.session.get('student_list', [])
+
     # 查询数据库获取对应的ConvertConfig对象
     selected_config = ConvertConfig.objects.get(config_name=config_name)
     # 使用related_name获取关联的Grade对象列表
@@ -166,3 +166,10 @@ def download_file(request, file_id):
     response['Content-Disposition'] = f'attachment; filename="{uploaded_file.file.name}"'
 
     return response
+
+
+# 删除数据库中的所有文件记录和文件本身
+# all_files = UploadedFile.objects.all()
+# for f in all_files:
+#     print(f.file)
+#     f.delete()
