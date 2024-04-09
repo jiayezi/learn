@@ -18,10 +18,9 @@ def sort_rule(score):
         return float(score)
 
 
-def open_file(request, file_id):
+def open_file(request, file_obj):
     """打开Excel，读取数据"""
-    uploaded_file = get_object_or_404(UploadedFile, id=file_id)
-    wb = load_workbook(uploaded_file.file.path, read_only=True)
+    wb = load_workbook(file_obj.file.path, read_only=True)
     ws = wb.active
 
     # 从session中获取或设置student_list和title
@@ -58,7 +57,7 @@ def upload_file(request):
             # 读取当前文件
             # with uploaded_file.file.open('rb') as file:
             # 交给其他函数读取文件内容
-            open_file(request, uploaded_file.id)
+            open_file(request, uploaded_file)
 
             # 如果使用redirect，需要将title再次存储到session中，因为redirect函数默认会将重定向的请求视为全新的请求，这意味着会创建一个新的session，而不是继续使用原始请求的session。这可能会导致在新的请求中无法访问到之前存储在session中的数据。
             # request.session['title'] = request.session['title']
