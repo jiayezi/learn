@@ -1,7 +1,7 @@
 from openpyxl import load_workbook, Workbook
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from .forms import UploadFileForm
-from .models import UploadedFile, ConvertConfig
+from .models import ConvertConfig
 from django.http import HttpResponse
 from io import BytesIO
 
@@ -18,7 +18,7 @@ def sort_rule(score):
         return float(score)
 
 
-def open_file(request, file_obj):
+def read_file(request, file_obj):
     """打开Excel，读取数据"""
     wb = load_workbook(file_obj.file.path, read_only=True)
     ws = wb.active
@@ -49,15 +49,25 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            uploaded_file = form.save()
+            file = request.FILES['file']
             # print(uploaded_file.id, uploaded_file.file.name)
-            # myfile = request.FILES['file']
-            # print(myfile.name)
-
             # 读取当前文件
-            # with uploaded_file.file.open('rb') as file:
-            # 交给其他函数读取文件内容
-            open_file(request, uploaded_file)
+            wb = load_workbook(file, read_only=True)
+            ws = wb.active
+            student_list = []
+            title = []
+            # 存为对象
+            student_list.clear()
+            for i, row in enumerate(ws.values):
+                if i == 0:
+                    title.extend(list(row))
+                    continue
+                student_list.append({'row': list(row)})
+            wb.close()
+
+            # 将数据存储到 session 中
+            request.session['student_list'] = student_list
+            request.session['title'] = title
 
             # 如果使用redirect，需要将title再次存储到session中，因为redirect函数默认会将重定向的请求视为全新的请求，这意味着会创建一个新的session，而不是继续使用原始请求的session。这可能会导致在新的请求中无法访问到之前存储在session中的数据。
             # request.session['title'] = request.session['title']
@@ -203,12 +213,12 @@ def convert(request, config_name, selected_subject_name):
     request.session['student_list'] = student_list
 
 
-def rank_page(request, file_id):
+def rank_page(request):
     pass
     return render(request, 'convert/rank_page.html')
 
 
-def sum_page(request, file_id):
+def sum_page(request):
     pass
     return render(request, 'convert/sum_page.html')
 
