@@ -18,33 +18,6 @@ def sort_rule(score):
         return float(score)
 
 
-def read_file(request, file_obj):
-    """打开Excel，读取数据"""
-    wb = load_workbook(file_obj.file.path, read_only=True)
-    ws = wb.active
-
-    # 从session中获取或设置student_list和title
-    if 'student_list' not in request.session:
-        request.session['student_list'] = []
-    if 'title' not in request.session:
-        request.session['title'] = []
-
-    student_list = request.session['student_list']
-    title = request.session['title']
-    # 清空现有数据
-    title.clear()
-    student_list.clear()
-
-    # 存为对象
-    student_list.clear()
-    for i, row in enumerate(ws.values):
-        if i == 0:
-            title.extend(list(row))
-            continue
-        student_list.append({'row': list(row)})
-    wb.close()
-
-
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
