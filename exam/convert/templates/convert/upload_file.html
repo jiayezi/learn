@@ -6,15 +6,14 @@
 {% endblock title %}
 
 {% block content %}
-<div class="container">
-    <p>请上传Excel文档</p>
-    <ol class="navbar-nav">
+    <div class="button-container">
+        <label for="id_file" class="custom-file-upload">选择文件</label>
         <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <li><input type="file" name="file" id="id_file" accept=".xlsx" required></li>
-        <li><button type="submit">上传文档</button></li>
+        <input type="file" name="file" id="id_file" accept=".xlsx" required class="button">
+        <button type="submit" class="button">上传文档</button>
         </form>
-    </ol>
-</div>
-
+        <div id="file_name_display"></div> <!-- 用于显示文件名 -->
+    </div>
+<script src="{% static 'customize/js/file_upload.js' %}"></script>
 {% endblock content %}
