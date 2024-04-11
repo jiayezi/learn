@@ -1,25 +1,12 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-<head>
-    <meta charset="UTF-8">
-    <title>等级赋分</title>
-    <script>
-        function toggleAllCheckboxes() {
-            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            var selectAllCheckbox = document.getElementById('selectAll');
+{% extends "base.html" %}
+{% load static %}
 
-            // 获取全选按钮的当前状态
-            var isChecked = selectAllCheckbox.checked;
+{% block title %}
+    成绩赋分和排名
+{% endblock title %}
 
-            // 根据全选按钮的状态设置复选框的选中状态
-            for (var i = 0; i < checkboxes.length; i++) {
-                checkboxes[i].checked = isChecked;
-            }
-        }
-    </script>
-</head>
-<body>
-    <div>
+{% block content %}
+    <div class="container">
         <form method="post">
             {% csrf_token %}
             <!--使用下拉列表展示赋分模板-->
@@ -30,6 +17,8 @@
                 <option value="{{ config }}">{{ config }}</option>
             {% endfor %}
             </select>
+            <br>
+            <label>赋分科目:</label>
             <br>
             <!--使用复选框展示科目-->
             <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()">
@@ -44,5 +33,19 @@
         </form>
     </div>
 
-</body>
-</html>
+<script>
+        function toggleAllCheckboxes() {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            var selectAllCheckbox = document.getElementById('selectAll');
+
+            // 获取全选按钮的当前状态
+            var isChecked = selectAllCheckbox.checked;
+
+            // 根据全选按钮的状态设置复选框的选中状态
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = isChecked;
+            }
+        }
+</script>
+
+{% endblock content %}

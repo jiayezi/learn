@@ -7,6 +7,7 @@
 
 {% block content %}
     <div class="button-container">
+        <a href="{% url 'upload_file' %}"><button class="button">重新上传</button></a>
         <a href="{% url 'convert_page' %}" target="_blank"><button class="button">成绩赋分</button></a>
         <a href="{% url 'rank_page' %}" target="_blank"><button class="button">计算排名</button></a>
         <a href="{% url 'sum_page' %}" target="_blank"><button class="button">组合成绩</button></a>
