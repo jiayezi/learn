@@ -1,0 +1,55 @@
+/* 用户区域样式 */
+.user-area {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* 将内容放置在右侧 */
+  padding: 10px;
+}
+
+/* 登录链接样式 */
+.login-link {
+  text-decoration: none;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 5px;
+}
+
+.login-link:hover {
+  background-color: #0056b3;
+}
+
+/* 用户菜单样式 */
+.user-menu {
+  position: relative;
+  display: flex; /* 使用Flexbox布局 */
+  align-items: center; /* 垂直居中 */
+}
+
+.username {
+  cursor: pointer;
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+/* 下拉菜单样式 */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  list-style: none;
+  padding: 0;
+}
+
+.dropdown-menu li {
+  padding: 8px 16px;
+}
+
+.dropdown-menu li:hover {
+  background-color: #f0f0f0;
+}

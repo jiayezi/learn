@@ -9,6 +9,7 @@
     <meta charset="utf-8">
     <!-- 引入css文件  -->
     <link rel="stylesheet" href="{% static 'customize/css/index.css' %}">
+    <link rel="stylesheet" href="{% static 'customize/css/login.css' %}">
     <!-- 预留头部信息的位置 -->
     {% block head %}{% endblock %}
     <!-- 预留网站标题的位置 -->
@@ -16,9 +17,24 @@
 </head>
 
 <body>
+<div class="user-area">
+  {% if user.is_authenticated %}
+    <div class="user-menu">
+      <span class="username" onclick="toggleMenu()">{{ user.username }}</span>
+      <ul class="dropdown-menu" id="dropdownMenu" onmouseleave="hideMenu()">
+        <li><a href="#">个人</a></li>
+        <li><a href="{% url 'logout' %}">退出</a></li>
+      </ul>
+    </div>
+  {% else %}
+    <a href="{% url 'login' %}" class="login-link">登录</a>
+  {% endif %}
+</div>
+
+
 <!-- 预留具体页面的位置 -->
 {% block content %}{% endblock content %}
-
+<script src="{% static 'customize/js/base.js' %}"></script>
 </body>
 
 </html>

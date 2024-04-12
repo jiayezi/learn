@@ -4,6 +4,7 @@ from .forms import UploadFileForm
 from .models import ConvertConfig
 from django.http import HttpResponse
 from io import BytesIO
+from django.contrib.auth import authenticate, login, logout
 
 
 possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
@@ -77,6 +78,10 @@ def convert_page(request):
             'configs': configs,
         }
         return render(request, 'convert/convert_page.html', context)
+
+
+def index(request):
+    return render(request, 'convert/index.html')
 
 
 def convert(request, config_name, selected_subject_name):
@@ -190,9 +195,9 @@ def rank_page(request):
     if request.method == 'POST':
         # 获取被选中的复选框的值
         selected_subjects = request.POST.getlist('selected_subjects')
-        selected_group = request.POST.getlist('selected_group')
+        selected_groups = request.POST.getlist('selected_groups')
         # 交给其他函数处理数据
-        rank(request, selected_subjects, selected_group)
+        rank(request, selected_subjects, selected_groups)
         return redirect(request.path)
     else:
         # 根据需要获取或使用会话中的数据
@@ -247,6 +252,29 @@ def download_file(request):
     response['Content-Disposition'] = 'attachment; filename="students.xlsx"'
 
     return response
+
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            # 登录成功后重定向到某个页面
+            return redirect('index')
+        else:
+            # 登录失败的处理
+            return render(request, 'convert/login.html', {'error_message': 'Invalid login'})
+    else:
+        # 如果不是POST请求，则显示登录表单页面
+        return render(request, 'convert/login.html')
+
+
+def user_logout(request):
+    logout(request)
+    # 注销后重定向到某个页面
+    return redirect('index')
 
 
 # 删除数据库中的所有文件记录和文件本身
