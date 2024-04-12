@@ -1,10 +1,28 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-<head>
-    <meta charset="UTF-8">
-    <title>计算排名</title>
-</head>
-<body>
-    <h1>rank</h1>
-</body>
-</html>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    计算排名
+{% endblock title %}
+
+{% block content %}
+    <div class="container">
+        <form method="post">
+            {% csrf_token %}
+            <label>排名科目</label>
+            <br>
+            <!--使用复选框展示科目-->
+            <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()">
+            <label for="selectAll">全选</label><br>
+            <!-- Loop through items and create checkboxes -->
+            {% for item in subjects %}
+                <input type="checkbox" id="{{ item }}" name="selected_subjects" value="{{ item }}">
+                <label for="{{ item }}">{{ item }}</label><br>
+            {% endfor %}
+            <br>
+            <input type="submit" value="生成排名">
+        </form>
+    </div>
+
+<script src="{% static 'customize/js/rank.js' %}"></script>
+{% endblock content %}

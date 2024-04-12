@@ -64,7 +64,8 @@ form {
 
 label {
     display: inline-block;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    vertical-align: middle;
 }
 
 

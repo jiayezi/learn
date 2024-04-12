@@ -1,0 +1,31 @@
+.modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2); /* 半透明背景层 */
+    z-index: 999; /* 确保背景层在弹出式窗口之下 */
+    display: none;
+  }
+
+  .config_list {
+    display: none;
+    position: fixed;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    width: 400px;
+    height: 300px;
+
+  }
+
+  .modal-content {
+    padding: 20px;
+  }
+
+  .close {
+    float: right;
+    cursor: pointer;
+  }

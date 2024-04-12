@@ -187,8 +187,35 @@ def convert(request, config_name, selected_subject_name):
 
 
 def rank_page(request):
-    pass
-    return render(request, 'convert/rank_page.html')
+    if request.method == 'POST':
+        # 获取被选中的复选框的值
+        selected_subjects = request.POST.getlist('selected_subjects')
+        selected_group = request.POST.getlist('selected_group')
+        # 交给其他函数处理数据
+        rank(request, selected_subjects, selected_group)
+        return redirect(request.path)
+    else:
+        # 根据需要获取或使用会话中的数据
+        title = request.session.get('title', [])
+        # student_list = request.session.get('student_list', [])
+        subjects = []
+        groups = []
+        for item in title:
+            if item[:2] in possible_subjects:
+                subjects.append(item)
+            else:
+                groups.append(item)
+
+        context = {
+            'subjects': subjects,
+            'groups': groups,
+        }
+    return render(request, 'convert/rank_page.html', context)
+
+
+def rank(request, selected_subject_name, rank_group):
+    print(selected_subject_name)
+    print(rank_group)
 
 
 def sum_page(request):
