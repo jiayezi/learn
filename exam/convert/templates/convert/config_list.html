@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'customize/css/config_list.css' %}">
+{% endblock %}
+
+{% block title %}
+    模版列表
+{% endblock title %}
+{% block content %}
+<div class="container">
+        {% for config in configs %}
+        <div class="config-item">
+            <div class="config-info">
+                <span>{{ config.config_name }}</span>
+            </div>
+            <div class="config-buttons">
+                <a href="{% url 'edit_config' config_id=config.id %}" class="btn btn-primary">修改</a>
+                <form action="{% url 'delete_config' config_id=config.id %}" method="post" class="delete-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">删除</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    <a href="{% url 'create_config' %}" class="btn btn-success">新建</a>
+    </div>
+{% endblock content %}

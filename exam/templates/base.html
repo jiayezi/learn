@@ -22,7 +22,7 @@
     <div class="user-menu">
       <span class="username" onclick="toggleMenu()">{{ user.username }}</span>
       <ul class="dropdown-menu" id="dropdownMenu" onmouseleave="hideMenu()">
-        <li><a href="#">个人模板</a></li>
+        <li><a href="{% url 'config_list' %}">个人模板</a></li>
         <li><a href="{% url 'logout' %}">退出</a></li>
       </ul>
     </div>

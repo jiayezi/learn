@@ -298,8 +298,9 @@ def user_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # 登录成功后重定向到某个页面
-            return redirect('index')
+            # 获取重定向目标，如果没有则重定向到默认页面
+            redirect_to = request.GET.get('next', 'index')
+            return redirect(redirect_to)
         else:
             # 登录失败的处理
             return render(request, 'convert/login.html', {'error_message': '无效的用户名或密码'})
@@ -312,6 +313,29 @@ def user_logout(request):
     logout(request)
     # 注销后重定向到某个页面
     return redirect('index')
+
+
+@login_required
+def config_list(request):
+    configs = ConvertConfig.objects.filter(author=request.user)
+    return render(request, 'convert/config_list.html', {'configs': configs})
+
+
+@login_required
+def create_config(request):
+    pass
+
+
+@login_required
+def edit_config(request, config_id):
+    pass
+
+
+@login_required
+def delete_config(request, config_id):
+    pass
+
+
 
 
 # 删除数据库中的所有文件记录和文件本身

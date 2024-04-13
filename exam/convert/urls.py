@@ -11,4 +11,8 @@ urlpatterns = [
     path('register/', views.user_register, name='register'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
+    path('config_list/', views.config_list, name='config_list'),
+    path('config/create/', views.create_config, name='create_config'),
+    path('config/edit/<int:config_id>/', views.edit_config, name='edit_config'),
+    path('config/delete/<int:config_id>/', views.delete_config, name='delete_config'),
 ]

@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-w(tesmmhs4d7(ebw72dmxx-a&0ya0rrhnvg%erk^_st@_8ei!o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -126,5 +126,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# SESSION_COOKIE_AGE = 3600  # 设置session持续时间为1小时
+SESSION_COOKIE_AGE = 1800  # 设置session持续时间为半小时
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # session在浏览器关闭后立即过期
+
+# 指定用户在未登录时应该被重定向到哪个登录页面
+LOGIN_URL = '/convert/login/'
+
