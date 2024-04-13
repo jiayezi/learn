@@ -1,3 +1,4 @@
+from django.db.models import Q
 from openpyxl import load_workbook, Workbook
 from django.shortcuts import render, redirect
 from .forms import UploadFileForm
@@ -5,7 +6,8 @@ from .models import ConvertConfig
 from django.http import HttpResponse
 from io import BytesIO
 from django.contrib.auth import authenticate, login, logout
-
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 
 possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
                      '生物', '总分', '总成绩', '全科')
@@ -42,12 +44,14 @@ def upload_file(request):
             # 将数据存储到 session 中
             request.session['student_list'] = student_list
             request.session['title'] = title
+            request.session['file'] = True
 
             # 如果使用redirect，需要将title再次存储到session中，因为redirect函数默认会将重定向的请求视为全新的请求，这意味着会创建一个新的session，而不是继续使用原始请求的session。这可能会导致在新的请求中无法访问到之前存储在session中的数据。
-            # request.session['title'] = request.session['title']
-            # request.session['student_list'] = request.session['student_list']
-
-            return render(request, 'convert/index.html')
+            request.session['title'] = request.session['title']
+            request.session['student_list'] = request.session['student_list']
+            request.session['file'] = True
+            return redirect('index')
+            # return render(request, 'convert/index.html')
     else:
         form = UploadFileForm()
     return render(request, 'convert/upload_file.html', {'form': form})
@@ -71,7 +75,14 @@ def convert_page(request):
             if item[:2] in possible_subjects:
                 subjects.append(item)
 
-        configs = ConvertConfig.objects.values_list('config_name', flat=True)
+        if request.user.is_authenticated:
+            # 如果用户已经登录，获取当前用户的数据和管理员的数据
+            configs = ConvertConfig.objects.filter(
+                Q(author=request.user) | Q(author__username='jiayezi')
+            ).values_list('config_name', flat=True)
+        else:
+            # 如果用户没有登录，只获取jiayezi的数据
+            configs = ConvertConfig.objects.filter(author__username='jiayezi').values_list('config_name', flat=True)
 
         context = {
             'items': subjects,
@@ -81,7 +92,11 @@ def convert_page(request):
 
 
 def index(request):
-    return render(request, 'convert/index.html')
+    # 如果没有上传文件，就跳转到上传文件页面
+    if request.session.get('file', False):
+        return render(request, 'convert/index.html')
+    else:
+        return redirect('upload_file')
 
 
 def convert(request, config_name, selected_subject_name):
@@ -254,6 +269,28 @@ def download_file(request):
     return response
 
 
+def user_register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        # 检查密码是否一致
+        if password != confirm_password:
+            return render(request, 'convert/register.html', {'error_message': 'Passwords do not match'})
+
+        # 创建用户
+        user = User.objects.create_user(username=username, password=password)
+        user.save()
+
+        # 注册成功后
+        login(request, user)
+        return redirect('index')
+    else:
+        # 如果不是POST请求，则显示注册表单页面
+        return render(request, 'convert/register.html')
+
+
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -265,7 +302,7 @@ def user_login(request):
             return redirect('index')
         else:
             # 登录失败的处理
-            return render(request, 'convert/login.html', {'error_message': 'Invalid login'})
+            return render(request, 'convert/login.html', {'error_message': '无效的用户名或密码'})
     else:
         # 如果不是POST请求，则显示登录表单页面
         return render(request, 'convert/login.html')

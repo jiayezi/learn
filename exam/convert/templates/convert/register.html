@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登陆</title>
-    <link rel="stylesheet" href="{% static 'customize/css/login.css' %}">
+    <title>用户注册</title>
+    <link rel="stylesheet" href="{% static 'customize/css/register.css' %}">
 </head>
 <body>
-    <div class="login-container">
-        <h2>登陆</h2>
+    <div class="register-container">
+        <h2>用户注册</h2>
         {% if error_message %}
             <p class="error-message">{{ error_message }}</p>
         {% endif %}
@@ -23,9 +23,12 @@
                 <label for="password">密码</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit">登陆</button>
+            <div class="input-group">
+                <label for="confirm_password">确认密码</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <button type="submit">注册</button>
         </form>
-        <p class="register-link">没有账号？ <a href="{% url 'register' %}">点击注册</a></p>
     </div>
 </body>
 </html>
