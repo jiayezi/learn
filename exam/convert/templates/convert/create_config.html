@@ -42,13 +42,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const addBtn = document.getElementById('add-btn');
     const form = document.getElementById('main-form');
 
     // 添加按钮点击事件处理程序
-    addBtn.addEventListener('click', function() {
+    document.getElementById('add-btn').addEventListener('click', function() {
         const gradeTable = document.getElementById('grade-table').getElementsByTagName('tbody')[0];
-        const newRow = gradeTable.insertRow(-1); // Insert new row at the end of the table
+        const newRow = gradeTable.insertRow(-1); // 在表末尾插入新行
         newRow.classList.add('grade-form');
 
         const fields = ['grade_name', 'high_score', 'low_score', 'percent'];
@@ -57,32 +56,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const cell = newRow.insertCell();
             const input = document.createElement('input');
             input.name = formIndex + '-' + field;  // 使用正确的字段名称
-            input.placeholder = field.charAt(0).toUpperCase() + field.slice(1); // Capitalize field name
-            input.required = true; // Ensure the field is required
+            input.placeholder = field.charAt(0).toUpperCase() + field.slice(1); // 字段名称大写
+            input.required = true; // 确保该字段为必填字段
             cell.appendChild(input);
         });
 
-        const deleteCell = newRow.insertCell();
-        deleteCell.innerHTML = '<button type="button" class="delete-btn">删除</button>';
-
-        // 为新添加的删除按钮添加点击事件处理程序
-        const deleteBtn = deleteCell.querySelector('.delete-btn');
-        deleteBtn.addEventListener('click', function() {
-            newRow.remove(); // 移除当前行
-            updateFormCount(); // 更新表单计数
-        });
-
+        newRow.insertCell().innerHTML = '<button type="button" class="delete-btn">删除</button>';
         updateFormCount(); // 更新表单计数
     });
 
-    // 初始化时为每个删除按钮添加事件处理程序
-    const deleteBtns = document.querySelectorAll('.delete-btn');
-    deleteBtns.forEach(function(deleteBtn) {
-        deleteBtn.addEventListener('click', function() {
-            const row = deleteBtn.parentNode.parentNode;
+    // 删除按钮点击事件处理程序
+    form.addEventListener('click', function(event) {
+        if (event.target.classList.contains('delete-btn')) {
+            const row = event.target.closest('tr');
             row.remove(); // 移除当前行
             updateFormCount(); // 更新表单计数
-        });
+        }
     });
 
     // 更新表单计数函数
@@ -93,7 +82,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
-
-
 
 {% endblock content %}
