@@ -1,29 +1,47 @@
+<!-- config_list.html -->
 {% extends "base.html" %}
 {% load static %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'customize/css/config_list.css' %}">
-{% endblock %}
+{% endblock head %}
 
 {% block title %}
     模版列表
 {% endblock title %}
+
 {% block content %}
 <div class="container">
-        {% for config in configs %}
-        <div class="config-item">
-            <div class="config-info">
-                <span>{{ config.config_name }}</span>
-            </div>
-            <div class="config-buttons">
-                <a href="{% url 'modify_config' config_id=config.id %}" class="btn btn-primary">修改</a>
-                <form action="{% url 'delete_config' config_id=config.id %}" method="post" class="delete-form">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">删除</button>
-                </form>
-            </div>
+    {% for config in configs %}
+    <div class="config-item">
+        <div class="config-info">
+            <span>{{ config.config_name }}</span>
         </div>
-        {% endfor %}
-    <a href="{% url 'create_config' %}" class="btn btn-success">新建</a>
+        <div class="config-buttons">
+            <a href="{% url 'modify_config' config_id=config.id %}" class="btn btn-primary">修改</a>
+            <form action="{% url 'delete_config' config_id=config.id %}" method="post" class="delete-form">
+                {% csrf_token %}
+                <button type="button" class="btn btn-danger delete-btn">删除</button>
+            </form>
+        </div>
     </div>
+    {% endfor %}
+    <a href="{% url 'create_config' %}" class="btn btn-success">新建</a>
+</div>
+
+<!-- JavaScript for delete confirmation dialog -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                const confirmed = confirm('确定要删除此配置吗？');
+                if (confirmed) {
+                    button.parentElement.submit();
+                }
+            });
+        });
+    });
+</script>
 {% endblock content %}

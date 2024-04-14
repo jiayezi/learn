@@ -1,4 +1,3 @@
-<!-- edit_config.html -->
 {% extends "base.html" %}
 {% load static %}
 
@@ -7,10 +6,9 @@
 {% endblock %}
 
 {% block title %}
-    修改模版
+    修改配置
 {% endblock title %}
 {% block content %}
-<!-- edit_config.html -->
 <form method="post" id="main-form">
     {% csrf_token %}
     {{ config_form.as_p }}
@@ -25,12 +23,12 @@
             </tr>
         </thead>
         <tbody>
-            {% for form in grade_formset %}
+            {% for grade_form in grade_forms %}
                 <tr class="grade-form">
-                    <td>{{ form.grade_name }}</td>
-                    <td>{{ form.high_score }}</td>
-                    <td>{{ form.low_score }}</td>
-                    <td>{{ form.percent }}</td>
+                    <td>{{ grade_form.grade_name }}</td>
+                    <td>{{ grade_form.high_score }}</td>
+                    <td>{{ grade_form.low_score }}</td>
+                    <td>{{ grade_form.percent }}</td>
                     <td><button type="button" class="delete-btn">删除</button></td>
                 </tr>
             {% endfor %}
@@ -45,13 +43,18 @@
         const addBtn = document.getElementById('add-btn');
         const gradeTable = document.getElementById('grade-table');
         const form = document.getElementById('main-form');
-        let formCount = {{ grade_formset|length }};
+        let formCount = {{ grade_forms|length }};
 
         addBtn.addEventListener('click', function() {
             const newRow = gradeTable.insertRow(-1); // Insert new row at the end of the table
             newRow.classList.add('grade-form');
-            const formHtml = '{{ grade_formset.empty_form.as_table }}';
-            newRow.innerHTML = formHtml.replace(/__prefix__/g, formCount);
+            let cell, deleteCell;
+            {% for field in grade_forms.0 %}
+                cell = newRow.insertCell();
+                cell.innerHTML = '{{ field }}';
+            {% endfor %}
+            deleteCell = newRow.insertCell();
+            deleteCell.innerHTML = '<button type="button" class="delete-btn">Delete</button>';
             formCount++;
         });
 
@@ -59,9 +62,9 @@
             if (event.target.classList.contains('delete-btn')) {
                 const row = event.target.closest('tr');
                 row.remove();
+                formCount--;
             }
         });
     });
 </script>
-
 {% endblock content %}
