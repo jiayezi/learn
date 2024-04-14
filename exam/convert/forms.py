@@ -18,7 +18,6 @@ class ConvertConfigForm(forms.ModelForm):
     class Meta:
         model = ConvertConfig
         fields = ['config_name']
-        # widgets = {'config_name': forms.TextInput(attrs={'placeholder': '配置名称'})}
         labels = {'config_name': '配置名称'}
 
 

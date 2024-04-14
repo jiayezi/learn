@@ -11,6 +11,8 @@
 {% block content %}
 <form method="post" id="main-form">
     {% csrf_token %}
+<!--    <input type="text" id="form_count" name="form_count" value="{{ grade_forms|length }}">-->
+    <input type="hidden" id="form_count" name="form_count" value="{{ grade_forms|length }}">
     {{ config_form.as_p }}
     <table id="grade-table">
         <thead>
@@ -39,32 +41,59 @@
 </form>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const addBtn = document.getElementById('add-btn');
-        const gradeTable = document.getElementById('grade-table');
-        const form = document.getElementById('main-form');
-        let formCount = {{ grade_forms|length }};
+document.addEventListener('DOMContentLoaded', function() {
+    const addBtn = document.getElementById('add-btn');
+    const form = document.getElementById('main-form');
 
-        addBtn.addEventListener('click', function() {
-            const newRow = gradeTable.insertRow(-1); // Insert new row at the end of the table
-            newRow.classList.add('grade-form');
-            let cell, deleteCell;
-            {% for field in grade_forms.0 %}
-                cell = newRow.insertCell();
-                cell.innerHTML = '{{ field }}';
-            {% endfor %}
-            deleteCell = newRow.insertCell();
-            deleteCell.innerHTML = '<button type="button" class="delete-btn">Delete</button>';
-            formCount++;
+    // 添加按钮点击事件处理程序
+    addBtn.addEventListener('click', function() {
+        const gradeTable = document.getElementById('grade-table').getElementsByTagName('tbody')[0];
+        const newRow = gradeTable.insertRow(-1); // Insert new row at the end of the table
+        newRow.classList.add('grade-form');
+
+        const fields = ['grade_name', 'high_score', 'low_score', 'percent'];
+        const formIndex = document.querySelectorAll('.grade-form').length - 1; // 获取最后一个表单的索引
+        fields.forEach(function(field) {
+            const cell = newRow.insertCell();
+            const input = document.createElement('input');
+            input.name = formIndex + '-' + field;  // 使用正确的字段名称
+            input.placeholder = field.charAt(0).toUpperCase() + field.slice(1); // Capitalize field name
+            input.required = true; // Ensure the field is required
+            cell.appendChild(input);
         });
 
-        form.addEventListener('click', function(event) {
-            if (event.target.classList.contains('delete-btn')) {
-                const row = event.target.closest('tr');
-                row.remove();
-                formCount--;
-            }
+        const deleteCell = newRow.insertCell();
+        deleteCell.innerHTML = '<button type="button" class="delete-btn">删除</button>';
+
+        // 为新添加的删除按钮添加点击事件处理程序
+        const deleteBtn = deleteCell.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', function() {
+            newRow.remove(); // 移除当前行
+            updateFormCount(); // 更新表单计数
+        });
+
+        updateFormCount(); // 更新表单计数
+    });
+
+    // 初始化时为每个删除按钮添加事件处理程序
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+    deleteBtns.forEach(function(deleteBtn) {
+        deleteBtn.addEventListener('click', function() {
+            const row = deleteBtn.parentNode.parentNode;
+            row.remove(); // 移除当前行
+            updateFormCount(); // 更新表单计数
         });
     });
+
+    // 更新表单计数函数
+    function updateFormCount() {
+        const gradeForms = document.querySelectorAll('.grade-form');
+        document.getElementById('form_count').value = gradeForms.length;
+    }
+});
+
 </script>
+
+
+
 {% endblock content %}

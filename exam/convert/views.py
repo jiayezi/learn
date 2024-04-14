@@ -329,7 +329,10 @@ def config_list(request):
 def create_config(request):
     if request.method == 'POST':
         config_form = ConvertConfigForm(request.POST)
-        grade_forms = [GradeForm(request.POST, prefix=str(i)) for i in range(1)]  # default 1 grade forms
+        form_count = int(request.POST.get('form_count'))
+        grade_forms = [GradeForm(request.POST, prefix=str(i)) for i in range(form_count)]
+        # for grade_form in grade_forms:
+        #     print(grade_form.errors)
         if config_form.is_valid() and all(grade_form.is_valid() for grade_form in grade_forms):
             config = config_form.save(commit=False)
             config.author = request.user
@@ -338,10 +341,10 @@ def create_config(request):
                 grade = grade_form.save(commit=False)
                 grade.config_name = config
                 grade.save()
-            return redirect('config_list')
+            return redirect('config_list')  # replace with your success URL
     else:
         config_form = ConvertConfigForm()
-        grade_forms = [GradeForm(prefix=str(i)) for i in range(1)]  # default 1 grade forms
+        grade_forms = [GradeForm(prefix=str(i)) for i in range(3)]  # default 3 grade forms
 
     return render(request, 'convert/create_config.html', {'config_form': config_form, 'grade_forms': grade_forms})
 
