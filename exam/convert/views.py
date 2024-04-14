@@ -1,13 +1,17 @@
 from django.db.models import Q
+from django.forms import formset_factory
 from openpyxl import load_workbook, Workbook
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import UploadFileForm
-from .models import ConvertConfig
+from .models import ConvertConfig, Grade
 from django.http import HttpResponse
 from io import BytesIO
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from .forms import ConvertConfigForm, GradeForm
+
+
 
 possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
                      '生物', '总分', '总成绩', '全科')
@@ -323,7 +327,42 @@ def config_list(request):
 
 @login_required
 def create_config(request):
-    pass
+    if request.method == 'POST':
+        config_form = ConvertConfigForm(request.POST)
+        grade_forms = [GradeForm(request.POST, prefix=str(i)) for i in range(3)]  # default 3 grade forms
+        if config_form.is_valid() and all(grade_form.is_valid() for grade_form in grade_forms):
+            config = config_form.save(commit=False)
+            config.author = request.user
+            config.save()
+            for grade_form in grade_forms:
+                grade = grade_form.save(commit=False)
+                grade.config_name = config
+                grade.save()
+            return redirect('config_list')  # replace with your success URL
+    else:
+        config_form = ConvertConfigForm()
+        grade_forms = [GradeForm(prefix=str(i)) for i in range(3)]  # default 3 grade forms
+
+    return render(request, 'convert/create_config.html', {'config_form': config_form, 'grade_forms': grade_forms})
+
+
+@login_required
+def modify_config(request, config_id):
+    config = get_object_or_404(ConvertConfig, pk=config_id)
+    if request.method == 'POST':
+        config_form = ConvertConfigForm(request.POST, instance=config)
+        grade_formset = GradeFormSet(request.POST, instance=config)
+        if config_form.is_valid() and grade_formset.is_valid():
+            config_form.save()
+            grade_formset.save()
+            return redirect('config_list')  # Replace with your success URL
+    else:
+        config_form = ConvertConfigForm(instance=config)
+        grade_formset = GradeFormSet(instance=config)
+    return render(request, 'convert/modify_config.html', {'config_form': config_form, 'grade_formset': grade_formset})
+
+
+
 
 
 @login_required

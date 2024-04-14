@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'customize/css/create_config.css' %}">
+{% endblock %}
+
+{% block title %}
+    创建模版
+{% endblock title %}
+{% block content %}
+<form method="post" id="main-form">
+    {% csrf_token %}
+    {{ config_form.as_p }}
+    <table id="grade-table">
+        <thead>
+            <tr>
+                <th>等级</th>
+                <th>高分</th>
+                <th>低分</th>
+                <th>占比</th>
+                <th></th>  <!-- Delete button column -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for grade_form in grade_forms %}
+                <tr class="grade-form">
+                    <td>{{ grade_form.grade_name }}</td>
+                    <td>{{ grade_form.high_score }}</td>
+                    <td>{{ grade_form.low_score }}</td>
+                    <td>{{ grade_form.percent }}</td>
+                    <td><button type="button" class="delete-btn">删除</button></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="button" id="add-btn">添加</button>
+    <button type="submit">保存</button>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addBtn = document.getElementById('add-btn');
+        const gradeTable = document.getElementById('grade-table');
+        const form = document.getElementById('main-form');
+        let formCount = {{ grade_forms|length }};
+
+        addBtn.addEventListener('click', function() {
+            const newRow = gradeTable.insertRow(-1); // Insert new row at the end of the table
+            newRow.classList.add('grade-form');
+            let cell, deleteCell;
+            {% for field in grade_forms.0 %}
+                cell = newRow.insertCell();
+                cell.innerHTML = '{{ field }}';
+            {% endfor %}
+            deleteCell = newRow.insertCell();
+            deleteCell.innerHTML = '<button type="button" class="delete-btn">Delete</button>';
+            formCount++;
+        });
+
+        form.addEventListener('click', function(event) {
+            if (event.target.classList.contains('delete-btn')) {
+                const row = event.target.closest('tr');
+                row.remove();
+                formCount--;
+            }
+        });
+    });
+</script>
+{% endblock content %}

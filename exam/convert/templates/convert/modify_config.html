@@ -1,0 +1,67 @@
+<!-- edit_config.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'customize/css/create_config.css' %}">
+{% endblock %}
+
+{% block title %}
+    修改模版
+{% endblock title %}
+{% block content %}
+<!-- edit_config.html -->
+<form method="post" id="main-form">
+    {% csrf_token %}
+    {{ config_form.as_p }}
+    <table id="grade-table">
+        <thead>
+            <tr>
+                <th>等级</th>
+                <th>高分</th>
+                <th>低分</th>
+                <th>占比</th>
+                <th></th>  <!-- Delete button column -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in grade_formset %}
+                <tr class="grade-form">
+                    <td>{{ form.grade_name }}</td>
+                    <td>{{ form.high_score }}</td>
+                    <td>{{ form.low_score }}</td>
+                    <td>{{ form.percent }}</td>
+                    <td><button type="button" class="delete-btn">删除</button></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="button" id="add-btn">添加</button>
+    <button type="submit">保存</button>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addBtn = document.getElementById('add-btn');
+        const gradeTable = document.getElementById('grade-table');
+        const form = document.getElementById('main-form');
+        let formCount = {{ grade_formset|length }};
+
+        addBtn.addEventListener('click', function() {
+            const newRow = gradeTable.insertRow(-1); // Insert new row at the end of the table
+            newRow.classList.add('grade-form');
+            const formHtml = '{{ grade_formset.empty_form.as_table }}';
+            newRow.innerHTML = formHtml.replace(/__prefix__/g, formCount);
+            formCount++;
+        });
+
+        form.addEventListener('click', function(event) {
+            if (event.target.classList.contains('delete-btn')) {
+                const row = event.target.closest('tr');
+                row.remove();
+            }
+        });
+    });
+</script>
+
+{% endblock content %}

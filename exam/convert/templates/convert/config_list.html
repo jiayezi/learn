@@ -16,7 +16,7 @@
                 <span>{{ config.config_name }}</span>
             </div>
             <div class="config-buttons">
-                <a href="{% url 'edit_config' config_id=config.id %}" class="btn btn-primary">修改</a>
+                <a href="{% url 'modify_config' config_id=config.id %}" class="btn btn-primary">修改</a>
                 <form action="{% url 'delete_config' config_id=config.id %}" method="post" class="delete-form">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">删除</button>
