@@ -1,8 +1,8 @@
 /* 用户区域样式 */
-.user-area {
+.header-area {
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* 将内容放置在右侧 */
+  height:60px;
   padding: 10px;
 }
 
@@ -24,8 +24,9 @@
 /* 用户菜单样式 */
 .user-menu {
   position: relative;
-  display: flex; /* 使用Flexbox布局 */
-  align-items: center; /* 垂直居中 */
+  display: flex;
+  align-items: center;
+  margin-left: auto;
 }
 
 .username {
@@ -33,6 +34,11 @@
   padding: 8px 16px;
   background-color: #a0e3ab;
   border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.username:hover {
+  background-color: #80d38b;
 }
 
 /* 下拉菜单样式 */
@@ -54,4 +60,10 @@
 
 .dropdown-menu li:hover {
   background-color: #f0f0f0;
+}
+
+.logo-link {
+    width: 60px;
+    height: 60px;
+    /* 给超链接标签添加高度和宽度以确保超链接内的图片正常显示 */
 }

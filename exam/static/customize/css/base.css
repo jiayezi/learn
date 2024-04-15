@@ -5,7 +5,7 @@ body {
     padding: 0;
 }
 
-
+ /* DIV容器样式 */
 .container {
     max-width: 400px;
     margin: 50px auto;
@@ -15,10 +15,11 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+ /* 容器内的元素从上到下排列，垂直居中对齐 */
 .button-container {
     display: flex;
     flex-direction: column;
-    align-items: center; /* 居中对齐 */
+    align-items: center;
     margin: 200px auto;
 }
 
@@ -39,17 +40,19 @@ form {
     margin: 40px auto;
 }
 
-input[type="submit"],button[type="submit"] {
-    padding: 10px 18px;
+input[type="submit"]{
+    padding: 8px 16px;
     background-color: #007bff;
+    font-size: 14px;
     color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
+    margin:5px;
 }
 
-input[type="submit"]:hover,button[type="submit"]:hover {
+input[type="submit"]:hover{
     background-color: #0056b3;
 }
 
@@ -82,25 +85,7 @@ input[type="checkbox"]:checked::before {
     color: #fff;
 }
 
- /* 按钮样式 */
-button{
-    display: inline-block;
-    background-color: #4caf50;
-    font-size: 16px;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 18px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin: 5px;
-}
-
-button:hover{
-    background-color: #388e3c;
-}
-
-
+ /* 下拉列表样式 */
 select {
     margin-bottom: 20px;
     width: 200px;
@@ -146,3 +131,45 @@ td:last-child {
     text-align: center;
 }
 
+
+/*按钮样式*/
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    margin: 5px;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+
+.btn-success{
+    color: #fff;
+    background-color: #4caf50;
+}
+
+.btn-success:hover{
+    background-color: #388e3c;
+}

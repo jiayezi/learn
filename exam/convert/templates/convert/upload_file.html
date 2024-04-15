@@ -10,14 +10,16 @@
 {% endblock title %}
 
 {% block content %}
+<div class="button-container">
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="file" name="file" id="id_file" accept=".xlsx" required>
-            <label for="id_file" class="custom-file-upload">选择文件</label>
+            <label for="id_file" class="btn  btn-success">选择文件</label>
             <br>
-        <button type="submit" class="button">上传文档</button>
+<!--        <button type="submit" class="button">上传文档</button>-->
+        <input type="submit" value="上传文档">
         </form>
     <div id="file_name_display"></div> <!-- 用于显示文件名 -->
-
+</div>
 <script src="{% static 'customize/js/file_upload.js' %}"></script>
 {% endblock content %}

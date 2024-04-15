@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     var fileInput = document.getElementById("id_file");
-    var uploadButton = document.querySelector("button[type='submit']");
+    var uploadButton = document.querySelector("input[type='submit']");
     var fileNameDisplay = document.getElementById("file_name_display");
 
     fileInput.addEventListener("change", function() {

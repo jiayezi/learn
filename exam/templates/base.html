@@ -9,7 +9,7 @@
     <meta charset="utf-8">
     <!-- 引入css文件  -->
     <link rel="stylesheet" href="{% static 'customize/css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'customize/css/user-area.css' %}">
+    <link rel="stylesheet" href="{% static 'customize/css/header.css' %}">
     <!-- 预留头部信息的位置 -->
     {% block head %}{% endblock %}
     <!-- 预留网站标题的位置 -->
@@ -17,7 +17,10 @@
 </head>
 
 <body>
-<div class="user-area">
+<div class="header-area">
+    <a href="{% url 'index' %}" class="logo-link">
+        <img src="{% static 'images/green apple.svg' %}">
+    </a>
   {% if user.is_authenticated %}
     <div class="user-menu">
       <span class="username" onclick="toggleMenu()">{{ user.username }}</span>
@@ -27,8 +30,10 @@
       </ul>
     </div>
   {% else %}
-    <a href="{% url 'register' %}" class="login-link">注册</a>
-    <a href="{% url 'login' %}" class="login-link">登录</a>
+    <div class="user-menu">
+        <a href="{% url 'register' %}" class="login-link">注册</a>
+        <a href="{% url 'login' %}" class="login-link">登录</a>
+    </div>
   {% endif %}
 </div>
 
