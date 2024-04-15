@@ -1,19 +1,23 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'customize/css/upload_file.css' %}">
+{% endblock %}
+
 {% block title %}
     成绩赋分和排名
 {% endblock title %}
 
 {% block content %}
-    <div class="button-container">
-        <label for="id_file" class="custom-file-upload">选择文件</label>
-        <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <input type="file" name="file" id="id_file" accept=".xlsx" required class="button">
+        <input type="file" name="file" id="id_file" accept=".xlsx" required>
+            <label for="id_file" class="custom-file-upload">选择文件</label>
+            <br>
         <button type="submit" class="button">上传文档</button>
         </form>
-        <div id="file_name_display"></div> <!-- 用于显示文件名 -->
-    </div>
+    <div id="file_name_display"></div> <!-- 用于显示文件名 -->
+
 <script src="{% static 'customize/js/file_upload.js' %}"></script>
 {% endblock content %}

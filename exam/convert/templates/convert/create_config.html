@@ -31,13 +31,14 @@
                     <td>{{ grade_form.high_score }}</td>
                     <td>{{ grade_form.low_score }}</td>
                     <td>{{ grade_form.percent }}</td>
-                    <td><button type="button" class="delete-btn">删除</button></td>
+                    <td><button type="button" class="delete-btn">删除此行</button></td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-    <button type="button" id="add-btn">添加</button>
-    <button type="submit">保存</button>
+    <button type="button" id="add-btn">新增一行</button>
+    <br><br><br>
+    <button type="submit">保存模板</button>
 </form>
 
 <script>
@@ -51,13 +52,20 @@ document.addEventListener('DOMContentLoaded', function() {
         newRow.classList.add('grade-form');
 
         const fields = ['grade_name', 'high_score', 'low_score', 'percent'];
+        const placeholders = ['等级', '高分', '低分', '占比']; // 硬编码 placeholder
+        const max_lengths = [4, null, null, null]; // 设置与初始表单元素相同的maxlength属性
         const formIndex = document.querySelectorAll('.grade-form').length - 1; // 获取最后一个表单的索引
-        fields.forEach(function(field) {
+        fields.forEach(function(field, index) {
             const cell = newRow.insertCell();
             const input = document.createElement('input');
-            input.name = formIndex + '-' + field;  // 使用正确的字段名称
-            input.placeholder = field.charAt(0).toUpperCase() + field.slice(1); // 字段名称大写
+            input.type = (field === 'grade_name') ? 'text' : 'number'; // 根据字段确定输入类型
+            input.name = formIndex + '-' + field;  // 需要使用前缀+名称
+            input.placeholder = placeholders[index]; // 使用硬编码的 placeholder
+            if (max_lengths[index] !== null) {
+                input.maxLength = max_lengths[index]; // 设置与初始表单元素相同的maxlength属性
+            }
             input.required = true; // 确保该字段为必填字段
+            input.id = 'id'+'_'+formIndex + '-' + field;  // id+前缀+名称
             cell.appendChild(input);
         });
 

@@ -6,7 +6,6 @@
 {% endblock title %}
 
 {% block content %}
-    <div class="container">
         <form method="post">
             {% csrf_token %}
             <!--使用下拉列表展示赋分模板-->
@@ -31,7 +30,6 @@
             <br>
             <input type="submit" value="生成赋分">
         </form>
-    </div>
 
 <script src="{% static 'customize/js/convert.js' %}"></script>
 {% endblock content %}
