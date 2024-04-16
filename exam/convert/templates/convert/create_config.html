@@ -44,6 +44,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('main-form');
+    const fieldNames = ['grade_name', 'high_score', 'low_score', 'percent']; // 字段名称数组
+    const placeholders = ['等级', '高分', '低分', '占比']; // placeholder 数组
+    const fieldTypes = ['text', 'number', 'number', 'number']; // 输入类型数组
+    const maxLengths = [4, null, null, null]; // 最大长度数组
 
     // 添加按钮点击事件处理程序
     document.getElementById('add-btn').addEventListener('click', function() {
@@ -51,21 +55,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const newRow = gradeTable.insertRow(-1); // 在表末尾插入新行
         newRow.classList.add('grade-form');
 
-        const fields = ['grade_name', 'high_score', 'low_score', 'percent'];
-        const placeholders = ['等级', '高分', '低分', '占比']; // 硬编码 placeholder
-        const max_lengths = [4, null, null, null]; // 设置与初始表单元素相同的maxlength属性
         const formIndex = document.querySelectorAll('.grade-form').length - 1; // 获取最后一个表单的索引
-        fields.forEach(function(field, index) {
+        fieldNames.forEach(function(fieldName, index) {
             const cell = newRow.insertCell();
             const input = document.createElement('input');
-            input.type = (field === 'grade_name') ? 'text' : 'number'; // 根据字段确定输入类型
-            input.name = formIndex + '-' + field;  // 需要使用前缀+名称
+            input.type = fieldTypes[index]; // 根据字段确定输入类型
+            input.name = formIndex + '-' + fieldName;  // 需要使用前缀+名称
             input.placeholder = placeholders[index]; // 使用硬编码的 placeholder
-            if (max_lengths[index] !== null) {
-                input.maxLength = max_lengths[index]; // 设置与初始表单元素相同的maxlength属性
+            if (maxLengths[index] !== null) {
+                input.maxLength = maxLengths[index]; // 设置最大长度
             }
             input.required = true; // 确保该字段为必填字段
-            input.id = 'id'+'_'+formIndex + '-' + field;  // id+前缀+名称
+            input.id = 'id_'+formIndex + '-' + fieldName;  // id+前缀+名称
             cell.appendChild(input);
         });
 
