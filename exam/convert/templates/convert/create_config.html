@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const placeholders = ['等级', '高分', '低分', '占比']; // placeholder 数组
     const fieldTypes = ['text', 'number', 'number', 'number']; // 输入类型数组
     const maxLengths = [4, null, null, null]; // 最大长度数组
+    let formIndex = document.querySelectorAll('.grade-form').length; // 初始索引为已存在表单数量
 
     // 添加按钮点击事件处理程序
     document.getElementById('add-btn').addEventListener('click', function() {
@@ -55,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const newRow = gradeTable.insertRow(-1); // 在表末尾插入新行
         newRow.classList.add('grade-form');
 
-        const formIndex = document.querySelectorAll('.grade-form').length - 1; // 获取最后一个表单的索引
         fieldNames.forEach(function(fieldName, index) {
             const cell = newRow.insertCell();
             const input = document.createElement('input');
@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.appendChild(input);
         });
 
+        formIndex++; // 更新索引
         updateFormCount(); // 更新表单计数
     });
 
@@ -77,13 +78,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('delete-btn').addEventListener('click', function() {
         const gradeTable = document.getElementById('grade-table').getElementsByTagName('tbody')[0];
         gradeTable.deleteRow(-1); // 删除表格的最后一行
+        formIndex--; // 更新索引
         updateFormCount(); // 更新表单计数
     });
 
     // 更新表单计数函数
     function updateFormCount() {
-        const gradeForms = document.querySelectorAll('.grade-form');
-        document.getElementById('form_count').value = gradeForms.length;
+        document.getElementById('form_count').value = formIndex;
     }
 });
 
