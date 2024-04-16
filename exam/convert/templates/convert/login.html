@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="{% static 'customize/css/login.css' %}">
 </head>
 <body>
+<div class="full-screen-container">
+    <a href="{% url 'index' %}" class="logo-link">
+        <img src="{% static 'images/green apple.svg' %}">
+    </a>
     <div class="container">
         <h2>登陆</h2>
         {% if error_message %}
@@ -28,5 +32,6 @@
         </form>
         <p class="register-link">没有账号？ <a href="{% url 'register' %}">点击注册</a></p>
     </div>
+</div>
 </body>
 </html>
