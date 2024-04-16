@@ -359,10 +359,6 @@ def modify_config(request, config_id):
     grade_forms = [GradeForm(instance=grade, prefix=str(i)) for i, grade in enumerate(config.grade_set.all())]
 
     if request.method == 'POST':
-        # 保存前先清空这个配置下的所有等级数据
-        for grade in config.grade_set.all():
-            grade.delete()
-
         config_form = ConvertConfigForm(request.POST, instance=config)
         form_count = int(request.POST.get('form_count'))
         grade_forms = [GradeForm(request.POST, prefix=str(i)) for i in range(form_count)]
@@ -372,10 +368,9 @@ def modify_config(request, config_id):
             config.author = request.user
             config.save()
 
-            # Delete grades not present in the form
-            # for grade in config.grade_set.all():
-            #     if not any(grade_form.prefix == str(i) for i, grade_form in enumerate(grade_forms)):
-            #         grade.delete()
+            # 从数据库中删除config关联的所有Grade数据
+            for grade in config.grade_set.all():
+                grade.delete()
 
             # 保存这个配置下的所有等级数据
             for grade_form in grade_forms:
@@ -389,7 +384,6 @@ def modify_config(request, config_id):
 
     return render(request, 'convert/modify_config.html',
                   {'config': config, 'config_form': config_form, 'grade_forms': grade_forms})
-
 
 
 @login_required

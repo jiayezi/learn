@@ -37,6 +37,8 @@
         </table>
         <button type="button" id="add-btn" class="btn btn-success">新增一行</button>
         <button type="button" id="delete-btn" class="btn btn-danger">删除一行</button>
+        <br>
+        <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-primary">返回上页</a>
         <input type="submit" value="保存模板">
     </form>
 </div>
