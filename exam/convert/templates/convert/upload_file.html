@@ -11,6 +11,12 @@
 
 {% block content %}
 <div class="button-container">
+    {% if messages %}
+        {% for message in messages %}
+            <p class="{{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="file" name="file" id="id_file" accept=".xlsx" required>

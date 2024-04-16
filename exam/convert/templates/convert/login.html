@@ -5,10 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登陆</title>
+    <link rel="stylesheet" href="{% static 'customize/css/base.css' %}">
     <link rel="stylesheet" href="{% static 'customize/css/login.css' %}">
 </head>
 <body>
-    <div class="login-container">
+    <div class="container">
         <h2>登陆</h2>
         {% if error_message %}
             <p class="error-message">{{ error_message }}</p>

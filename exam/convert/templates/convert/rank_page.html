@@ -6,6 +6,7 @@
 {% endblock title %}
 
 {% block content %}
+<div class="container">
         <form method="post">
             {% csrf_token %}
             <div>
@@ -37,6 +38,6 @@
             </div>
             <input type="submit" value="生成排名">
         </form>
-
+</div>
 <script src="{% static 'customize/js/rank.js' %}"></script>
 {% endblock content %}

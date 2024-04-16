@@ -5,10 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>用户注册</title>
-    <link rel="stylesheet" href="{% static 'customize/css/register.css' %}">
+    <link rel="stylesheet" href="{% static 'customize/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'customize/css/login.css' %}">
 </head>
 <body>
-    <div class="register-container">
+    <div class="container">
         <h2>注册</h2>
         {% if error_message %}
             <p class="error-message">{{ error_message }}</p>
@@ -29,6 +30,7 @@
             </div>
             <button type="submit">注册</button>
         </form>
+        <p class="register-link">已有账号？ <a href="{% url 'login' %}">点击登录</a></p>
     </div>
 </body>
 </html>

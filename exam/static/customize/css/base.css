@@ -8,10 +8,10 @@ body {
  /* DIV容器样式 */
 .container {
     max-width: 400px;
-    margin: 50px auto;
+    margin: 100px auto;
     padding: 20px;
     background-color: #fff;
-    border-radius: 8px;
+    border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -31,13 +31,20 @@ label {
 }
 
  /* 表单样式 */
-form {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    max-width: 400px;
-    margin: 40px auto;
+input[type="text"],input[type="password"],input[type="number"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+input[type="text"]:hover,input[type="password"]:hover,input[type="number"]:hover {
+    border-color: #007bff;
+}
+
+input[type="text"]:focus,input[type="password"]:focus,input[type="number"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
 input[type="submit"]{
@@ -127,10 +134,6 @@ th {
     background-color: #f2f2f2;
 }
 
-td:last-child {
-    text-align: center;
-}
-
 
 /*按钮样式*/
 .btn {
@@ -172,4 +175,17 @@ td:last-child {
 
 .btn-success:hover{
     background-color: #388e3c;
+}
+
+/*消息样式*/
+.error{
+    color: #f00;
+}
+
+.warning{
+    color: #ff0;
+}
+
+.info{
+    color: #0ff;
 }

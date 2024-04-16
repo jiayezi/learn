@@ -1,5 +1,5 @@
 from django.db.models import Q
-from django.forms import formset_factory
+from django.contrib import messages
 from openpyxl import load_workbook, Workbook
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import UploadFileForm
@@ -100,6 +100,8 @@ def index(request):
     if request.session.get('file', False):
         return render(request, 'convert/index.html')
     else:
+        message = '请先上传文档！'
+        messages.error(request, message)  # 添加错误消息
         return redirect('upload_file')
 
 
@@ -281,7 +283,11 @@ def user_register(request):
 
         # 检查密码是否一致
         if password != confirm_password:
-            return render(request, 'convert/register.html', {'error_message': 'Passwords do not match'})
+            return render(request, 'convert/register.html', {'error_message': '密码不匹配'})
+
+        # 检查用户名是否已存在
+        if User.objects.filter(username=username).exists():
+            return render(request, 'convert/register.html', {'error_message': '该用户名已被注册'})
 
         # 创建用户
         user = User.objects.create_user(username=username, password=password)

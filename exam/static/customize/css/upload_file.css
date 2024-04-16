@@ -1,13 +1,3 @@
-/*为该页面的表单重新定义样式*/
-form {
-    background-color: initial;
-    border-radius: initial;
-    box-shadow: initial;
-    padding: initial;
-    max-width: initial;
-    margin: initial;
-}
-
 #id_file {
     display: none;
 }

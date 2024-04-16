@@ -9,37 +9,37 @@
     创建模版
 {% endblock title %}
 {% block content %}
-<form method="post" id="main-form">
-    {% csrf_token %}
-<!--    <input type="text" id="form_count" name="form_count" value="{{ grade_forms|length }}">-->
-    <input type="hidden" id="form_count" name="form_count" value="{{ grade_forms|length }}">
-    {{ config_form.as_p }}
-    <table id="grade-table">
-        <thead>
-            <tr>
-                <th>等级</th>
-                <th>高分</th>
-                <th>低分</th>
-                <th>占比</th>
-                <th></th>  <!-- Delete button column -->
-            </tr>
-        </thead>
-        <tbody>
-            {% for grade_form in grade_forms %}
-                <tr class="grade-form">
-                    <td>{{ grade_form.grade_name }}</td>
-                    <td>{{ grade_form.high_score }}</td>
-                    <td>{{ grade_form.low_score }}</td>
-                    <td>{{ grade_form.percent }}</td>
-                    <td><button type="button" class="delete-btn">删除此行</button></td>
+<div class="container">
+    <form method="post" id="main-form">
+        {% csrf_token %}
+    <!--    <input type="text" id="form_count" name="form_count" value="{{ grade_forms|length }}">-->
+        <input type="hidden" id="form_count" name="form_count" value="{{ grade_forms|length }}">
+        {{ config_form.as_p }}
+        <table id="grade-table">
+            <thead>
+                <tr>
+                    <th>等级</th>
+                    <th>高分</th>
+                    <th>低分</th>
+                    <th>占比</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <button type="button" id="add-btn">新增一行</button>
-    <br><br><br>
-    <button type="submit">保存模板</button>
-</form>
+            </thead>
+            <tbody>
+                {% for grade_form in grade_forms %}
+                    <tr class="grade-form">
+                        <td>{{ grade_form.grade_name }}</td>
+                        <td>{{ grade_form.high_score }}</td>
+                        <td>{{ grade_form.low_score }}</td>
+                        <td>{{ grade_form.percent }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="button" id="add-btn" class="btn btn-success">新增一行</button>
+        <button type="button" id="delete-btn" class="btn btn-danger">删除一行</button>
+        <input type="submit" value="保存模板">
+    </form>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -69,17 +69,14 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.appendChild(input);
         });
 
-        newRow.insertCell().innerHTML = '<button type="button" class="delete-btn">删除</button>';
         updateFormCount(); // 更新表单计数
     });
 
     // 删除按钮点击事件处理程序
-    form.addEventListener('click', function(event) {
-        if (event.target.classList.contains('delete-btn')) {
-            const row = event.target.closest('tr');
-            row.remove(); // 移除当前行
-            updateFormCount(); // 更新表单计数
-        }
+    document.getElementById('delete-btn').addEventListener('click', function() {
+        const gradeTable = document.getElementById('grade-table').getElementsByTagName('tbody')[0];
+        gradeTable.deleteRow(-1); // 删除表格的最后一行
+        updateFormCount(); // 更新表单计数
     });
 
     // 更新表单计数函数
@@ -90,5 +87,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
+
 
 {% endblock content %}
