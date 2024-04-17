@@ -1,10 +1,43 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-<head>
-    <meta charset="UTF-8">
-    <title>组合成绩</title>
-</head>
-<body>
- <h1>sum</h1>
-</body>
-</html>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    组合成绩
+{% endblock title %}
+
+{% block content %}
+<div class="container">
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <label>固定科目</label>
+                <br>
+                <!--使用复选框展示科目-->
+                <input type="checkbox" id="selectAll1" onclick="toggleAllCheckboxes('selectAll1', 'selected_subjects')">
+                <label for="selectAll1">全选</label><br>
+                <!-- Loop through items and create checkboxes -->
+                {% for item in subjects %}
+                    <input type="checkbox" id="{{ item }}" name="selected_subjects" value="{{ item }}">
+                    <label for="{{ item }}">{{ item }}</label><br>
+                {% endfor %}
+                <br>
+            </div>
+
+            <div>
+                <label>变化科目</label>
+                <br>
+                <!--使用复选框展示分组-->
+                <input type="checkbox" id="selectAll2" onclick="toggleAllCheckboxes('selectAll2', 'selected_subjects2')">
+                <label for="selectAll2">全选</label><br>
+                <!-- Loop through items and create checkboxes -->
+                {% for item in subjects %}
+                    <input type="checkbox" id="{{ item}}2" name="selected_subjects2" value="{{ item }}">
+                    <label for="{{ item}}2">{{ item }}</label><br>
+                {% endfor %}
+                <br>
+            </div>
+            <input type="submit" value="生成总分">
+        </form>
+</div>
+<script src="{% static 'customize/js/base.js' %}"></script>
+{% endblock content %}

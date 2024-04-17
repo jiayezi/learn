@@ -13,7 +13,7 @@
                 <label>排名科目</label>
                 <br>
                 <!--使用复选框展示科目-->
-                <input type="checkbox" id="selectAll1" onclick="toggleAllCheckboxes('selectAll1')">
+                <input type="checkbox" id="selectAll1" onclick="toggleAllCheckboxes('selectAll1', 'selected_subjects')">
                 <label for="selectAll1">全选</label><br>
                 <!-- Loop through items and create checkboxes -->
                 {% for item in subjects %}
@@ -27,7 +27,7 @@
                 <label>排名分组</label>
                 <br>
                 <!--使用复选框展示分组-->
-                <input type="checkbox" id="selectAll2" onclick="toggleAllCheckboxes('selectAll2')">
+                <input type="checkbox" id="selectAll2" onclick="toggleAllCheckboxes('selectAll2', 'selected_groups')">
                 <label for="selectAll2">全选</label><br>
                 <!-- Loop through items and create checkboxes -->
                 {% for group in groups %}
@@ -39,5 +39,5 @@
             <input type="submit" value="生成排名">
         </form>
 </div>
-<script src="{% static 'customize/js/rank.js' %}"></script>
+<script src="{% static 'customize/js/base.js' %}"></script>
 {% endblock content %}

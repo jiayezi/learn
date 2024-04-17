@@ -3,14 +3,13 @@ from django.contrib import messages
 from openpyxl import load_workbook, Workbook
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import UploadFileForm
-from .models import ConvertConfig, Grade
+from .models import ConvertConfig
 from django.http import HttpResponse
 from io import BytesIO
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from .forms import ConvertConfigForm, GradeForm
-
 
 
 possible_subjects = ('语文', '数学', '数学文', '数学理', '英语', '外语', '政治', '历史', '地理', '物理', '化学',
@@ -121,15 +120,6 @@ def convert(request, config_name, selected_subject_name):
         idx = title.index(name)
         selected_subject_index.append(idx)
 
-    # 检查
-    grade_info = ""
-    for grade in grades:
-        grade_info += f"等级: {grade.grade_name}, 高分: {grade.high_score}, 低分: {grade.low_score}, 占比: {grade.percent}\n"
-    text = f'选择的科目：{", ".join(selected_subject_name)}\n'
-    text += f'选择的配置：{selected_config}\n'
-    text += f'配置详情：\n{grade_info}'
-    print(text)
-
     # 加载配置文件，读取领先率、赋分区间和等级
     rate_exceed = []
     rate_dist = []
@@ -239,14 +229,38 @@ def rank_page(request):
     return render(request, 'convert/rank_page.html', context)
 
 
-def rank(request, selected_subject_name, rank_group):
-    print(selected_subject_name)
-    print(rank_group)
+def rank(request, selected_subjects, selected_groups):
+    print(selected_subjects)
+    print(selected_groups)
 
 
 def sum_page(request):
+    if request.method == 'POST':
+        # 获取被选中的复选框的值
+        selected_subjects = request.POST.getlist('selected_subjects')
+        selected_subjects2 = request.POST.getlist('selected_subjects2')
+        # 交给其他函数处理数据
+        score_sum(request, selected_subjects, selected_subjects2)
+        return redirect(request.path)
+    else:
+        # 根据需要获取或使用会话中的数据
+        title = request.session.get('title', [])
+        # student_list = request.session.get('student_list', [])
+        subjects = []
+        for item in title:
+            if item[:2] in possible_subjects:
+                subjects.append(item)
+
+        context = {
+            'subjects': subjects,
+        }
+    return render(request, 'convert/sum_page.html', context)
+
+
+def score_sum(request, selected_subjects, selected_subjects2):
+    print(selected_subjects)
+    print(selected_subjects2)
     pass
-    return render(request, 'convert/sum_page.html')
 
 
 def download_file(request):

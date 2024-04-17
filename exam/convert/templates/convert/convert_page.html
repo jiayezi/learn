@@ -21,7 +21,7 @@
             <label>赋分科目</label>
             <br>
             <!--使用复选框展示科目-->
-            <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()">
+            <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes('selectAll', 'selected_items')">
             <label for="selectAll">全选</label><br>
             <!-- Loop through items and create checkboxes -->
             {% for item in items %}
@@ -32,5 +32,5 @@
             <input type="submit" value="生成赋分">
         </form>
 </div>
-<script src="{% static 'customize/js/convert.js' %}"></script>
+<script src="{% static 'customize/js/base.js' %}"></script>
 {% endblock content %}
