@@ -85,7 +85,7 @@ with open('img_detail_page_url.json', encoding='utf-8') as f:
 
         img_path = os.path.join(save_dir, f"{title}.jpg")
 
-        # 检查文件是否已经存在，若存在则在文件名后添加数字
+        # 检查是否存在相同的文件名，若存在则在文件名后添加数字
         file_index = 1
         while os.path.exists(img_path):
             img_path = os.path.join(save_dir, f"{title} {file_index}.jpg")
