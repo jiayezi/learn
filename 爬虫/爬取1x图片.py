@@ -1,59 +1,106 @@
+import os
+import random
 import requests
 from lxml import etree
 import re
 import json
 import time
 
-user_id = '148395'
-user_name = 'arcadiaman'
+user_id = '30892'
+user_name = 'paradowski'
 
-# 第一步，获取每张图片的详情页面的网址
+# 使用 requests.Session 来重用连接
+session = requests.Session()
+
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'accept-language': 'zh-CN,zh;q=0.9',
-    'cache-control': 'max-age=0',
-    'cookie': '1xSession3=89a5a097bcc8fbe9a032aea2dd248ef7',
-    'referer': f'https://1x.com/{user_name}'}
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    'Accept': 'application/xml, text/xml, */*; q=0.01',
+    'Accept-Language': 'zh-CN,zh;q=0.9',
+    'Cookie': '__stripe_mid=5374592c-6079-4c89-8ea1-6748c3199feb25f25c; __stripe_sid=f1afb696-4e13-468a-8b0b-8ebfa96ef37f0bacf7',
+    'Referer': f'https://1x.com/{user_name}'}
 
-url = f'https://1x.com/backend/lm2.php?'
-params = {'style': 'normal', 'mode': f'user:{user_id}:overview:'}
-url_list = []
+# 第一步，模拟翻页，获取所有图片的详情页网址
+# url = f'https://1x.com/backend/lm2.php'
+# url_list = []
+# pattern = rf"location.href='(/photo/\d+/useroverview/{user_id})'"
+# params = {'style': 'normal', 'mode': f'user:{user_id}:overview:'}
+# has_more = True
+# offset = 0
+# while has_more:
+#     params['from'] = offset
+#     try:
+#         response = session.get(url, params=params, headers=headers)
+#         response.encoding = 'utf-8'
+#         content = response.text
+#         tmp_list = re.findall(pattern, content)
+#         url_list.extend(tmp_list)
+#
+#         # 打印进度信息
+#         print(f"Fetched {len(tmp_list)} URLs from page starting at {offset}.")
+#
+#         # 判断是否还有更多数据
+#         if len(tmp_list) < 20:
+#             has_more = False
+#
+#         offset += 20
+#         # 使用随机延迟
+#         time.sleep(random.uniform(1, 3))
+#     except requests.RequestException as e:
+#         print(f"Request failed at offset {offset}: {e}")
+#         break
+#
+# print(len(url_list))
+#
+# url_detail_list = ['https://1x.com' + s for s in url_list]
+# with open('img_detail_page_url.json', 'w') as f:
+#     json.dump(url_detail_list, f, ensure_ascii=False, indent=4)
 
-for i in range(0, 201, 20):
-    params['from'] = i
-    response = requests.get(url, params=params, headers=headers)
-    response.encoding = 'utf-8'
-    content = response.text
-    tmp_list = re.findall(rf'/photo/\d+/useroverview/{user_id}', content)
-    url_list.extend(tmp_list)
-    time.sleep(1)
 
-print(len(url_list))
-
-url_dict = {'url': 'https://1x.com' + s for s in url_list}
-
-with open('img_detail_page_url.json', 'w') as f:
-    json.dump(url_dict, f)
+# 定义一个函数来清理文件名
+def clean_filename(filename):
+    return re.sub(r'[<>:"/\\|?*]', '_', filename)
 
 
 # 第二步，访问每个图片详情页并提取信息
-img_title_url_dict = {}
+save_dir = 'E:/行星鉴定记录者/图片/Leszek Paradowski'
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+
 with open('img_detail_page_url.json', encoding='utf-8') as f:
-    url_dict = json.load(f)
-    urls = url_dict['url']
-    counter = 0
-    for url in urls:
-        response = requests.get(url, headers=headers)
+    urls = json.load(f)
+    for counter, url in enumerate(urls[144:], 145):
+        response = session.get(url, headers=headers)
         response.encoding = 'utf-8'
-        counter += 1
         content = response.text
         tree = etree.HTML(content)
-        title = tree.xpath('//*[@id="photodata-2843318"]/div[1]/div[1]/text()')[0]
-        img_url = tree.xpath('//*[@id="img-2843320"]/@src')[0]
-        if title is None:
-            title = f'Untitled {counter:>3d}'
-        img_title_url_dict[title] = img_url
 
-with open('img_title_url_dict.json', 'w') as f:
-    json.dump(img_title_url_dict, f)
+        # 提取标题
+        title = tree.xpath('/html/head/title/text()')[0]
+        if title.startswith('Untitled'):
+            title = title+f'_{counter:0>3d}'
+        title = clean_filename(title)
+
+        # 提取图片链接
+        img_url = tree.xpath('//*[@oncontextmenu="return false;"]/@src')[0]
+
+        img_path = os.path.join(save_dir, f"{title}.jpg")
+
+        # 检查文件是否已经存在，若存在则在文件名后添加数字
+        file_index = 1
+        while os.path.exists(img_path):
+            img_path = os.path.join(save_dir, f"{title} {file_index}.jpg")
+            file_index += 1
+
+        # 下载并保存图片
+        img_response = session.get(img_url, headers=headers, stream=True)
+        if img_response.status_code == 200:
+            with open(img_path, 'wb') as img_file:
+                for chunk in img_response.iter_content(1024):
+                    img_file.write(chunk)
+            print(counter, f"Downloaded: {title}")
+        else:
+            print(counter, f"Failed to download image from {img_url}")
+        # 使用随机延迟
+        time.sleep(random.uniform(1, 5))
+
+
