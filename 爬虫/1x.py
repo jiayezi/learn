@@ -1,10 +1,14 @@
-import os
+﻿import os
 import random
 import requests
 from lxml import etree
 import re
 import json
 import time
+
+"""
+下载1x.com上的图片，有些图片不适合未成年人看，所以要登陆账号再获取请求标头
+"""
 
 user_id = '30892'
 user_name = 'paradowski'
@@ -13,11 +17,21 @@ user_name = 'paradowski'
 session = requests.Session()
 
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-    'Accept': 'application/xml, text/xml, */*; q=0.01',
-    'Accept-Language': 'zh-CN,zh;q=0.9',
-    'Cookie': '__stripe_mid=5374592c-6079-4c89-8ea1-6748c3199feb25f25c; __stripe_sid=f1afb696-4e13-468a-8b0b-8ebfa96ef37f0bacf7',
-    'Referer': f'https://1x.com/{user_name}'}
+    "Accept": "application/xml, text/xml, */*; q=0.01",
+    "Accept-Language": "zh-CN,zh;q=0.9",
+    "Cookie": "__stripe_mid=5374592c-6079-4c89-8ea1-6748c3199feb25f25c; 1xSession3=030360206ac19110b227238e5628e466; __stripe_sid=1f4e4934-d874-41df-b313-3135b6cacb0d966c07",
+    "Priority": "u=1, i",
+    "Referer": "https://1x.com/paradowski/overview",
+    "Sec-Ch-Ua": "\"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"126\", \"Google Chrome\";v=\"126\"",
+    "Sec-Ch-Ua-Mobile": "?0",
+    "Sec-Ch-Ua-Platform": "\"Windows\"",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    "X-Requested-With": "XMLHttpRequest"
+}
+
 
 # 第一步，模拟翻页，获取所有图片的详情页网址
 # url = f'https://1x.com/backend/lm2.php'
@@ -68,7 +82,7 @@ if not os.path.exists(save_dir):
 
 with open('img_detail_page_url.json', encoding='utf-8') as f:
     urls = json.load(f)
-    for counter, url in enumerate(urls[144:], 145):
+    for counter, url in enumerate(urls):
         response = session.get(url, headers=headers)
         response.encoding = 'utf-8'
         content = response.text
