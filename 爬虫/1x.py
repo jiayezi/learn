@@ -10,8 +10,8 @@ import time
 下载1x.com上的图片，有些图片不适合未成年人看，所以要登陆账号再获取请求标头
 """
 
-user_id = '30892'
-user_name = 'paradowski'
+user_id = '37605'
+user_name = 'hengkilee'
 
 # 使用 requests.Session 来重用连接
 session = requests.Session()
@@ -19,16 +19,16 @@ session = requests.Session()
 headers = {
     "Accept": "application/xml, text/xml, */*; q=0.01",
     "Accept-Language": "zh-CN,zh;q=0.9",
-    "Cookie": "__stripe_mid=5374592c-6079-4c89-8ea1-6748c3199feb25f25c; 1xSession3=030360206ac19110b227238e5628e466; __stripe_sid=1f4e4934-d874-41df-b313-3135b6cacb0d966c07",
+    "Cookie": "__stripe_mid=5573e6e5-f838-4225-92e4-82a55f2a33a8e2b49b; 1xSession3=5bf0457e9dea87351ac443c477dc0bee; __stripe_sid=269e7b01-cbd6-4557-bb38-67b2e030e702892257",
     "Priority": "u=1, i",
-    "Referer": "https://1x.com/paradowski/overview",
-    "Sec-Ch-Ua": "\"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"126\", \"Google Chrome\";v=\"126\"",
+    "Referer": f"https://1x.com/{user_name}/overview",
+    "Sec-Ch-Ua": "\"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"127\", \"Google Chrome\";v=\"127\"",
     "Sec-Ch-Ua-Mobile": "?0",
     "Sec-Ch-Ua-Platform": "\"Windows\"",
     "Sec-Fetch-Dest": "empty",
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "same-origin",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
     "X-Requested-With": "XMLHttpRequest"
 }
 
@@ -63,7 +63,7 @@ headers = {
 #         print(f"Request failed at offset {offset}: {e}")
 #         break
 #
-# print(len(url_list))
+# print('链接数量', len(url_list))
 #
 # url_detail_list = ['https://1x.com' + s for s in url_list]
 # with open('img_detail_page_url.json', 'w') as f:
@@ -76,7 +76,7 @@ def clean_filename(filename):
 
 
 # 第二步，访问每个图片详情页并提取信息
-save_dir = 'E:/行星鉴定记录者/图片/Leszek Paradowski'
+save_dir = 'E:/行星鉴定记录者/图片/Hengki Lee'
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 
@@ -91,7 +91,7 @@ with open('img_detail_page_url.json', encoding='utf-8') as f:
         # 提取标题
         title = tree.xpath('/html/head/title/text()')[0]
         if title.startswith('Untitled'):
-            title = title+f'_{counter:0>3d}'
+            title = f'{title}_{counter:0>3d}'
         title = clean_filename(title)
 
         # 提取图片链接
