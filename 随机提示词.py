@@ -32,7 +32,7 @@ lights = {'side light', 'backlight', 'rim light', 'cinematic lighting', 'moody l
           'available light', 'soft light', 'sunlight', 'moonlight', 'spotlight'}
 # 镜头效果
 lens_effects = {'depth of field', 'lens flare', 'motion blur', 'bokeh', 'silhouette', 'Vignette', 'fish-eye lens',
-                'tilt-shift'}
+                'tilt-shift', 'swirly bokeh'}
 # 时间
 times = {'dawn', 'sunrise', 'sunset', 'dusk', 'evening', 'night'}
 # 天气
