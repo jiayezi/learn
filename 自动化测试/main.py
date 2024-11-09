@@ -5,13 +5,17 @@ import time
 
 # 初始化驱动
 driver = webdriver.Chrome()
+# driver.set_window_size(1920, 1080)
+# 最大化窗口
+driver.maximize_window()
 # 访问登录页面
 driver.get("http://qdwj.k12lps.com:9099/czxs")
 # 等待页面加载
-time.sleep(2)
+driver.implicitly_wait(2)
 # 输入用户名
 username_input = driver.find_element(By.XPATH, "//input[@placeholder='账 号']")
 username_input.send_keys("cs009")
+username_input.screenshot('./image.png')
 # 输入密码
 password_input = driver.find_element(By.XPATH, "//input[@placeholder='密 码']")
 password_input.send_keys("QDcs009")
@@ -50,7 +54,7 @@ for page in range(8):
 
         options[0].click()  # 点击第一个可见的选项
         print(f'第{page + 1}页第{question_name}题已填写')
-        time.sleep(0.1)
+        # time.sleep(0.1)
 
         index += 1  # 移动到下一个题目
 
@@ -70,4 +74,5 @@ for page in range(8):
         print("问卷已提交")
         input('问卷已提交，按回车键结束程序...')
 
+driver.quit()
 
