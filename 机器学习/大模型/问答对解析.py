@@ -41,8 +41,8 @@ def save_to_json(data, output_path):
         json.dump(data, file, ensure_ascii=False, indent=2)
 
 # 示例调用
-input_file = 'data.txt'
-output_file = 'train.json'
+input_file = 'E:/语言模型训练/博客对话数据集 优化.txt'
+output_file = 'E:/语言模型训练/train.json'
 parsed_data = parse_dialogue(input_file)
 save_to_json(parsed_data, output_file)
 print(f"✅ 成功保存到：{output_file}，共生成 {len(parsed_data)} 条样本")
