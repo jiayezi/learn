@@ -8,11 +8,22 @@ from sqlalchemy import create_engine, text
 from openai import OpenAI
 
 
+with open('config.json') as f:
+    cfg = json.load(f)
+
 # 全局参数
 CHUNK_SIZE = 800  # 每段最多 800 字
 SLEEP_TIME = 1    # 每篇文章之间休眠时间
-output_file = "dataset.md"
 processed_urls_file = "processed_urls.txt"  # 已处理的网址列表
+
+# api_key = cfg['DEEPSEEK_API_KEY']
+# base_url="https://api.deepseek.com"
+# model="deepseek-chat"
+# output_file = "dataset_deepseek.md"
+base_url="https://api.laozhang.ai/v1"
+api_key = cfg['OpenAI_API_KEY']
+model="gpt-4o"
+output_file = "dataset_gpt-4o.md"
 
 
 # 读取已处理的网址
@@ -96,10 +107,14 @@ def process_article_chunks(chunks):
     for i, chunk in enumerate(chunks):
         messages.append({"role": "user", "content": f"【文章片段开始】\n{chunk}\n【文章片段结束】"})
         response = client.chat.completions.create(
-            model="deepseek-chat",
+            model=model,
             messages=messages,
-            stream=False,
-            temperature = 1.3
+            stream=False,           # 静态数据处理关闭流式输出，更方便直接获取完整结果。
+            temperature = 1.1,      # 控制生成多样性。增加模型生成内容的多样性和创造性，有助于问答表达多样、答案更饱满自然。(使用gpt-4o时，temperature达到1.3会出现乱码)
+            top_p=1,                # 控制词汇采样范围。 保持为1，控制随机性的主要用 temperature
+            presence_penalty=0.2,   # 鼓励模型不要一味重复已有内容，稍微鼓励输出更多不同信息
+            frequency_penalty=0.0,  # 不抑制重复（因为问答结构重复是正常的）
+            max_tokens = 4096       # 设置为 2048 或更高，以免回答被截断
         )
         reply = response.choices[0].message.content.strip()
         messages.append({"role": "assistant", "content": reply})
@@ -107,7 +122,7 @@ def process_article_chunks(chunks):
     return all_output
 
 # 主处理逻辑
-def save_articles(urls, output_path):
+def save_dataset(urls, output_path):
     processed = load_processed_urls()
     with open(output_path, "a", encoding="utf-8") as f:
         for idx, url in enumerate(urls, 1):
@@ -131,9 +146,6 @@ def save_articles(urls, output_path):
 
 
 
-with open('config.json') as f:
-    cfg = json.load(f)
-
 # 对密码进行 URL 编码（密码中包含 @ 会导致连接字符串解析错误，因为 @ 在 URL 中是保留字符，用于分隔“用户名”和“主机地址”。）
 encoded_password = quote_plus(cfg['db_password'])
 # 构造数据库连接 URL
@@ -141,34 +153,63 @@ db_url = f"mysql+pymysql://{cfg['db_user']}:{encoded_password}@{cfg['db_host']}:
 # 创建引擎并执行 SQL
 engine = create_engine(db_url)
 
-# 初始化 OpenAI 客户端（DeepSeek）
-api_key = cfg['DEEPSEEK_API_KEY']
-client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+# 初始化 OpenAI 客户端
+client = OpenAI(api_key=api_key, base_url=base_url)
+
+# 读取背景知识文本
+with open('background_text', "rt", encoding="utf-8") as f:
+    background_text = f.read().strip()
 
 # 提示词模板
-system_prompt = """
-你是一个语言模型助手，负责将用户提供的文章内容转化为多个高质量的问答对数据集，用于训练一个能理解用户思想体系的大语言模型。转换时请严格遵循以下要求：
+system_prompt = f"""
+你是一个语言模型助手，现在需要协助用户从文章中提取多个高质量的问答对，用于训练一个具有世界观一致性和逻辑连贯性的大语言模型。
 
-1. 输出为 Markdown 格式：每组问答用 ### 问 和 ### 答 标记段落开头。所有内容保持 Markdown 风格（例如用 *斜体* 或 **加粗** 表示重点，或者用 - 分项列出信息）。每组问答结构如下：
+---
+
+### 🧠 背景知识
+
+以下是你将要处理的文章片段所处的世界观设定，请将这些背景作为你理解当前内容的基础：
+
+【背景知识开始】
+{background_text}
+【背景知识结束】
+
+---
+
+### 📌 任务规则
+
+请你根据用户当前提供的文章片段，严格遵循以下规则进行问答提取：
+
+1. 输出格式：
+- 使用 Markdown 格式，每组问答用`### 问`和`### 答`分别标记问题和回答开头；
+- 问答之间用空行分隔，每组问答之间也用空行分隔，不需要分割线；
+- 不要添加任何与问答无关的说明性文字（例如“以下是提取的问答内容”），直接输出格式化好的问答数据。
+
+1.1 每组问答结构如下：
 ### 问
 （提问内容）
 
 ### 答
 （回答内容）
 
-2. 每组问答需涵盖文章中的一个独立概念、信息点或设定，内容密度高的段落可拆分为多组问答，确保覆盖全部关键信息。
+2. 表达风格：
+- 问句要使用第二人称“你”提问，模拟读者向作者提问；
+- 答案要使用第一人称“我”作答，模拟作者本人回答；
+- 问句和答案均不得出现“文章提到”、“本篇写道”、“作者表示”等客观转述表述；
 
-3. 最好使用第二人称“你”提问，回答使用第一人称“我”作答，适当保留原文的说话风格。
+3. 内容划分与抽取要求：
+- 每组问答应涵盖文章中的一个独立概念、设定、逻辑链或信息点；
+- 若某段信息密度大，应根据概念或逻辑关系合理拆分为多个问答，每组问答只聚焦一个核心点；
+- 尽量覆盖原文全部关键信息，避免遗漏重要设定或观点。
 
-4. 问句要自然、具体、聚焦，指向清晰；答案要尽可能充实、通顺、自然、完整、准确、符合人类常规表达习惯，适当展开表达，丰富语义信息，避免简略的回应。在不改变原意的前提下，可以适当补充上下文、扩展逻辑链条或加深解释，让答案内容更加完整饱满。
+4. 语言表达要求：
+- 问句要自然、具体、提问角度明确清晰；
+- 回答应通顺自然、逻辑清晰，在不改变原意的前提下，可适当补充上下文、丰富语义、增强逻辑推导，让答案内容更加完整饱满；
+- 所有内容应忠实于背景知识和原文思想。
 
-5. 问句与答案需高度匹配，确保语义衔接紧密，有利于语言模型学习正确的提问-回答对齐模式。
+---
 
-6. 不要更改原意、削弱原文观点或引入外部评价；所有问答均基于原文内容提取生成。
-
-请你现在处理以下这篇文章的一部分内容（如下），并按照上述要求提取高质量问答数据。
-请专注于当前提供的内容片段，完整提取其中的独立概念、信息点或设定，尽可能覆盖全部关键信息。
-无需等待全文提供，每次用户将继续发送下一部分内容，请保持处理风格一致。
+请开始处理以下文章片段，并按照上述要求提取高质量问答数据：
 """
 
 # SQL 获取某个分类的所有文章链接
@@ -187,4 +228,4 @@ with engine.connect() as conn:
     result = conn.execute(text(sql))
     article_urls = [row['post_url'] for row in result.mappings()]
 
-save_articles(article_urls, output_file)
+save_dataset(article_urls[:1], output_file)
