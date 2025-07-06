@@ -16,14 +16,14 @@ CHUNK_SIZE = 800  # 每段最多 800 字
 SLEEP_TIME = 1    # 每篇文章之间休眠时间
 processed_urls_file = "processed_urls.txt"  # 已处理的网址列表
 
-# api_key = cfg['DEEPSEEK_API_KEY']
-# base_url="https://api.deepseek.com"
-# model="deepseek-chat"
-# output_file = "dataset_deepseek.md"
-base_url="https://api.laozhang.ai/v1"
-api_key = cfg['OpenAI_API_KEY']
-model="gpt-4o"
-output_file = "dataset_gpt-4o.md"
+api_key = cfg['DEEPSEEK_API_KEY']
+base_url="https://api.deepseek.com"
+model="deepseek-chat"
+output_file = "dataset_deepseek.md"
+# base_url="https://api.laozhang.ai/v1"
+# api_key = cfg['OpenAI_API_KEY']
+# model="gpt-4o"
+# output_file = "dataset_gpt-4o.md"
 
 
 # 读取已处理的网址
@@ -157,7 +157,7 @@ engine = create_engine(db_url)
 client = OpenAI(api_key=api_key, base_url=base_url)
 
 # 读取背景知识文本
-with open('background_text', "rt", encoding="utf-8") as f:
+with open('background_text.txt', "rt", encoding="utf-8") as f:
     background_text = f.read().strip()
 
 # 提示词模板
@@ -203,7 +203,7 @@ system_prompt = f"""
 - 尽量覆盖原文全部关键信息，避免遗漏重要设定或观点。
 
 4. 语言表达要求：
-- 问句要自然、具体、提问角度明确清晰；
+- 问句要自然、具体、提问角度明确清晰，包含足够的信息，使其在脱离原文上下文的情况下也能被清晰理解；
 - 回答应通顺自然、逻辑清晰，在不改变原意的前提下，可适当补充上下文、丰富语义、增强逻辑推导，让答案内容更加完整饱满；
 - 所有内容应忠实于背景知识和原文思想。
 
@@ -221,7 +221,9 @@ sql = """SELECT CONCAT('https://jiayezi.cn/archives/', p.ID) AS post_url
         WHERE p.post_status = 'publish'
           AND p.post_type = 'post'
           AND tt.taxonomy = 'category'
-          AND t.name = '神话'"""
+          AND t.name = '神话'
+          order by p.ID
+          """
 
 # 执行查询
 with engine.connect() as conn:
