@@ -1,10 +1,9 @@
 import json
 import os
-from urllib.parse import quote_plus
 import requests
 from bs4 import BeautifulSoup
 import time
-from sqlalchemy import create_engine, text
+import pymysql
 from openai import OpenAI
 
 
@@ -146,12 +145,16 @@ def save_dataset(urls, output_path):
 
 
 
-# 对密码进行 URL 编码（密码中包含 @ 会导致连接字符串解析错误，因为 @ 在 URL 中是保留字符，用于分隔“用户名”和“主机地址”。）
-encoded_password = quote_plus(cfg['db_password'])
-# 构造数据库连接 URL
-db_url = f"mysql+pymysql://{cfg['db_user']}:{encoded_password}@{cfg['db_host']}:{cfg['db_port']}/{cfg['db_name']}"
-# 创建引擎并执行 SQL
-engine = create_engine(db_url)
+# 构建数据库连接信息
+connection = pymysql.connect(
+    host=cfg['db_host'],
+    port=cfg['db_port'],
+    user=cfg['db_user'],
+    password=cfg['db_password'],
+    database=cfg['db_name'],
+    charset='utf8mb4',
+    cursorclass=pymysql.cursors.DictCursor  # 返回字典类型结果
+)
 
 # 初始化 OpenAI 客户端
 client = OpenAI(api_key=api_key, base_url=base_url)
@@ -203,7 +206,7 @@ system_prompt = f"""
 - 尽量覆盖原文全部关键信息，避免遗漏重要设定或观点。
 
 4. 语言表达要求：
-- 问句要自然、具体、提问角度明确清晰，包含足够的信息，使其在脱离原文上下文的情况下也能被清晰理解；
+- 问句要自然、具体、提问角度明确清晰，能独立呈现一个明确的问题意图，使其在脱离原文上下文的情况下也能被清晰理解；
 - 回答应通顺自然、逻辑清晰，在不改变原意的前提下，可适当补充上下文、丰富语义、增强逻辑推导，让答案内容更加完整饱满；
 - 所有内容应忠实于背景知识和原文思想。
 
@@ -226,8 +229,10 @@ sql = """SELECT CONCAT('https://jiayezi.cn/archives/', p.ID) AS post_url
           """
 
 # 执行查询
-with engine.connect() as conn:
-    result = conn.execute(text(sql))
-    article_urls = [row['post_url'] for row in result.mappings()]
+with connection:
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        article_urls = [row['post_url'] for row in result]
 
 save_dataset(article_urls[:1], output_file)
