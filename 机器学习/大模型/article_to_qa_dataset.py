@@ -2,9 +2,10 @@ import json
 import os
 import requests
 from bs4 import BeautifulSoup
-import time
 import pymysql
 from openai import OpenAI
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 
 
 with open('config.json') as f:
@@ -122,29 +123,36 @@ def process_article_chunks(chunks):
         all_output.append(reply)
     return all_output
 
-# 主处理逻辑
-def save_dataset(urls, output_path):
-    processed = load_processed_urls()
-    with open(output_path, "a", encoding="utf-8") as f:
-        for idx, url in enumerate(urls, 1):
-            if url in processed:
-                print(f"[跳过] 已处理: {url}")
-                continue
-            print(f"[{idx}/{len(urls)}] 正在处理: {url}")
-            article_text = extract_article_text(url)
-            if not article_text:
-                continue
-            chunks = split_into_chunks(article_text)
-            qa_outputs = process_article_chunks(chunks)
-            f.write(f"# 来源文章: {url}\n")
-            for qa in qa_outputs:
-                f.write(qa + "\n\n")
-            f.flush()  # 每篇处理完立即将缓冲区中的数据写入磁盘
-            save_processed_url(url)
-            print(f"✅ 完成: {url}\n")
-            time.sleep(SLEEP_TIME)
-    print(f"\n🎉 所有文章处理完成，数据已保存到：{output_path}")
+# 处理单个文章链接
+def process_single_article(url):
+    if url in processed:
+        print(f"[跳过] 已处理: {url}")
+        return None
+    print(f"[处理] 正在处理: {url}")
+    article_text = extract_article_text(url)
+    if not article_text:
+        return None
+    chunks = split_into_chunks(article_text)
+    qa_outputs = process_article_chunks(chunks)
+    save_processed_url(url)
+    return {"url": url, "qa_outputs": qa_outputs}
 
+# 主处理逻辑
+def save_dataset(urls, output_path, max_workers):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(process_single_article, url) for url in urls]
+
+        with open(output_path, "a", encoding="utf-8") as f:
+            for future in as_completed(futures):
+                result = future.result()
+                if not result:
+                    continue
+                with write_lock:
+                    f.write(f"# 来源文章: {result['url']}\n")
+                    for qa in result['qa_outputs']:
+                        f.write(qa + "\n\n")
+                    f.flush()
+    print(f"\n🎉 所有文章处理完成，数据已保存到：{output_path}")
 
 
 # 构建数据库连接信息
@@ -157,13 +165,6 @@ connection = pymysql.connect(
     charset='utf8mb4',
     cursorclass=pymysql.cursors.DictCursor  # 返回字典类型结果
 )
-
-# 初始化 OpenAI 客户端
-client = OpenAI(api_key=api_key, base_url=base_url)
-
-# 读取系统提示词
-with open('system_prompt.md', "rt", encoding="utf-8") as f:
-    system_prompt = f.read().strip()
 
 # SQL 获取某个分类的所有文章链接
 sql = """SELECT CONCAT('https://jiayezi.cn/archives/', p.ID) AS post_url
@@ -185,4 +186,15 @@ with connection:
         result = cursor.fetchall()
         article_urls = [row['post_url'] for row in result]
 
-save_dataset(article_urls[:1], output_file)
+# 初始化 OpenAI 客户端
+client = OpenAI(api_key=api_key, base_url=base_url)
+
+# 读取系统提示词
+with open('system_prompt.md', "rt", encoding="utf-8") as f:
+    system_prompt = f.read().strip()
+
+write_lock = threading.Lock()
+
+processed = load_processed_urls()
+
+save_dataset(article_urls[20:], output_file, max_workers=10)

@@ -1,48 +1,54 @@
 import json
+import re
 
-def parse_dialogue(file_path):
-    with open(file_path, 'rt', encoding='utf-8') as file:
-        content = file.read()
 
-    dialogues = content.strip().split('\n\n')
+def clean_content(raw_text):
+    # 去除 "# 来源文章" 标记
+    raw_text = re.sub(r'# 来源文章:.*', '', raw_text)
+
+    # 去除 markdown 分割线
+    raw_text = re.sub(r'^---$', '', raw_text, flags=re.MULTILINE)
+
+    # 去除反引号代码块标记，包括 ``` 和 ```markdown
+    raw_text = re.sub(r'```(?:markdown)?\n?', '', raw_text, flags=re.IGNORECASE)
+
+    return raw_text.strip()
+
+
+def parse_markdown_qa_single_turn(file_path):
+    with open(file_path, 'rt', encoding='utf-8') as f:
+        content = clean_content(f.read())
+
+    # 匹配所有问答对（Markdown格式）
+    qa_blocks = re.findall(r'### 问\s*(.*?)\n+### 答\s*(.*?)(?=\n### 问|\Z)', content, re.DOTALL)
+
     parsed_data = []
 
-    for dialogue in dialogues:
-        lines = [line.strip() for line in dialogue.split('\n') if line.strip()]
-        qa_pairs = []
-        i = 0
-        while i < len(lines) - 1:
-            if lines[i].startswith('问：') and lines[i + 1].startswith('答：'):
-                question = lines[i][2:].replace('\\n', '\n').strip()
-                answer = lines[i + 1][2:].replace('\\n', '\n').strip()
-                qa_pairs.append([question, answer])
-                i += 2
-            else:
-                print(f"警告：格式异常，跳过：{lines[i:i+2]}")
-                i += 1  # 尝试跳过异常，防止死循环
-
-        # 构造每一轮样本
-        for turn_idx in range(len(qa_pairs)):
-            history = qa_pairs[:turn_idx]
-            question, answer = qa_pairs[turn_idx]
+    for question, answer in qa_blocks:
+        question = question.strip()
+        answer = answer.strip()
+        if question and answer:
             sample = {
                 "instruction": question,
                 "input": "",
                 "output": answer,
                 "system": "",
-                "history": history
+                "history": []  # 空列表，LLaMA-Factory允许为空
             }
             parsed_data.append(sample)
 
     return parsed_data
 
-def save_to_json(data, output_path):
-    with open(output_path, 'wt', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=2)
 
-# 示例调用
-input_file = 'E:/语言模型训练/博客对话数据集 优化.txt'
-output_file = 'E:/语言模型训练/train.json'
-parsed_data = parse_dialogue(input_file)
-save_to_json(parsed_data, output_file)
-print(f"✅ 成功保存到：{output_file}，共生成 {len(parsed_data)} 条样本")
+def save_to_json(data, output_path):
+    with open(output_path, 'wt', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+# 示例用法（按需修改路径）
+input_file = 'dataset_gpt-4o.md'
+output_file = 'train_llama_factory_single.json'
+
+parsed = parse_markdown_qa_single_turn(input_file)
+save_to_json(parsed, output_file)
+print(f"✅ 单轮问答格式转换完成，共生成 {len(parsed)} 条样本：{output_file}")
