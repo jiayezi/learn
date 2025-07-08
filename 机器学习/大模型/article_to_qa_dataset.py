@@ -66,7 +66,7 @@ def split_into_chunks(text, max_chars=CHUNK_SIZE):
     if total_len <= max_chars:
         return [text.strip()]
 
-    # 估算需要多少段，确保每段不超过max_chars。(先对文章分成2组，检查每组是否超过800字，如果超过了，就分成3组，继续检查，直到每组不超过800字)
+    # 估算需要多少段，确保每段不超过max_chars。(先对文章分成2组，检查每组是否超过800个字，如果超过了，就分成3组，继续检查，以此类推，直到每组不超过800字)
     num_chunks = 2
     while total_len / num_chunks > max_chars:
         num_chunks += 1
@@ -77,13 +77,13 @@ def split_into_chunks(text, max_chars=CHUNK_SIZE):
     current = ""
 
     for i, para in enumerate(paragraphs):
-        if len(current) + len(para) + 1 <= approx_len:
+        if len(current) + len(para) + 50 <= approx_len:  # 50 是一个安全边界，避免段落过长
             current += para + "\n"
         else:
             chunks.append(current.strip())
             current = para + "\n"
 
-            # ✅ 智能提前终止判断（比如要拆分成3组，如果chunks列表中已经有两组数据了，就直接把剩下的文本当成最后一组，这种判断可避免多拆分一次）
+            # ✅ 智能提前终止判断（比如要拆分成3组，如果chunks列表中已经有两组数据了，就直接把剩下的文本当成最后一组，这种判断可避免在特殊情况下多拆分一次）
             if len(chunks) == num_chunks - 1:
                 # 剩下的所有段落合并为最后一组
                 remaining_text = "\n".join(paragraphs[i+1:]).strip()
