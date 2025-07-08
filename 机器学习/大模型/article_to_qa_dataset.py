@@ -105,13 +105,13 @@ def process_article_chunks(chunks):
     all_output = []
     chunks_num = len(chunks)
     for i, chunk in enumerate(chunks):
-        print(f'[处理片段] {i + 1}/{chunks_num}', end=' ')
+        print(f'[处理片段] {i + 1}/{chunks_num}: {chunk[:50] + '...'}')  # 打印片段前50个字符
         messages.append({"role": "user", "content": f"【文章片段开始】\n{chunk}\n【文章片段结束】"})
         response = client.chat.completions.create(
             model=model,
             messages=messages,
             stream=False,           # 静态数据处理关闭流式输出，更方便直接获取完整结果。
-            temperature = 1,      # 控制生成多样性。增加模型生成内容的多样性和创造性，有助于问答表达多样、答案更饱满自然。(使用gpt-4o时，temperature达到1.3会出现乱码)
+            temperature = 1,        # 控制生成多样性。增加模型生成内容的多样性和创造性，有助于问答表达多样、答案更饱满自然。(使用gpt-4o时，temperature达到1.3会出现乱码)
             top_p=1,                # 控制词汇采样范围。 保持为1，控制随机性的主要用 temperature
             presence_penalty=0.0,   # 设置为正值会鼓励模型不要一味重复已有内容，稍微鼓励输出更多不同信息
             frequency_penalty=0.0,  # 不抑制重复（因为问答结构重复是正常的）
@@ -120,7 +120,6 @@ def process_article_chunks(chunks):
         reply = response.choices[0].message.content.strip()
         messages.append({"role": "assistant", "content": reply})
         all_output.append(reply)
-    print()
     return all_output
 
 # 主处理逻辑
@@ -142,7 +141,7 @@ def save_dataset(urls, output_path):
                 f.write(qa + "\n\n")
             f.flush()  # 每篇处理完立即将缓冲区中的数据写入磁盘
             save_processed_url(url)
-            print(f"✅ 完成: {url}")
+            print(f"✅ 完成: {url}\n")
             time.sleep(SLEEP_TIME)
     print(f"\n🎉 所有文章处理完成，数据已保存到：{output_path}")
 
