@@ -14,6 +14,7 @@ with open('config.json') as f:
 # 全局参数
 CHUNK_SIZE = 800  # 每段最多 800 字
 SLEEP_TIME = 1    # 每篇文章之间休眠时间
+original_urls_file = 'original_urls.txt'
 processed_urls_file = "processed_urls.txt"  # 已处理的网址列表
 
 # api_key = cfg['DEEPSEEK_API_KEY']
@@ -23,8 +24,50 @@ processed_urls_file = "processed_urls.txt"  # 已处理的网址列表
 base_url="https://api.laozhang.ai/v1"
 api_key = cfg['OpenAI_API_KEY']
 model="gpt-4o"
-output_file = "dataset_gpt-4o.md"
+output_file = "重新提取.md"
 
+
+def load_urls(category):
+    if os.path.exists(original_urls_file):
+        with open(original_urls_file, "rt", encoding="utf-8") as f:
+            return [line.strip() for line in f if line.strip()]
+
+    # 构建数据库连接信息
+    connection = pymysql.connect(
+        host=cfg['db_host'],
+        port=cfg['db_port'],
+        user=cfg['db_user'],
+        password=cfg['db_password'],
+        database=cfg['db_name'],
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor  # 返回字典类型结果
+    )
+
+    # SQL 获取某个分类的所有文章链接
+    sql = f"""SELECT CONCAT('https://jiayezi.cn/archives/', p.ID) AS post_url
+            FROM wp_posts p
+            JOIN wp_term_relationships tr ON p.ID = tr.object_id
+            JOIN wp_term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+            JOIN wp_terms t ON tt.term_id = t.term_id
+            WHERE p.post_status = 'publish'
+              AND p.post_type = 'post'
+              AND tt.taxonomy = 'category'
+              AND t.name = '{category}'
+              order by p.ID
+              """
+    # 执行查询
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            article_urls = [row['post_url'] for row in result]
+
+    # 保存原始链接到文件
+    urls_text = "\n".join(article_urls)
+    with open(original_urls_file, "wt", encoding="utf-8") as f:
+        f.write(urls_text)
+
+    return article_urls
 
 # 读取已处理的网址
 def load_processed_urls():
@@ -126,7 +169,6 @@ def process_article_chunks(chunks):
 # 处理单个文章链接
 def process_single_article(url):
     if url in processed:
-        print(f"[跳过] 已处理: {url}")
         return None
     print(f"[处理] 正在处理: {url}")
     article_text = extract_article_text(url)
@@ -137,7 +179,7 @@ def process_single_article(url):
     save_processed_url(url)
     return {"url": url, "qa_outputs": qa_outputs}
 
-# 主处理逻辑
+# 批量保存数据集到文件
 def save_dataset(urls, output_path, max_workers):
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(process_single_article, url) for url in urls]
@@ -155,40 +197,8 @@ def save_dataset(urls, output_path, max_workers):
     print(f"\n🎉 所有文章处理完成，数据已保存到：{output_path}")
 
 
-# 构建数据库连接信息
-connection = pymysql.connect(
-    host=cfg['db_host'],
-    port=cfg['db_port'],
-    user=cfg['db_user'],
-    password=cfg['db_password'],
-    database=cfg['db_name'],
-    charset='utf8mb4',
-    cursorclass=pymysql.cursors.DictCursor  # 返回字典类型结果
-)
-
-# SQL 获取某个分类的所有文章链接
-sql = """SELECT CONCAT('https://jiayezi.cn/archives/', p.ID) AS post_url
-        FROM wp_posts p
-        JOIN wp_term_relationships tr ON p.ID = tr.object_id
-        JOIN wp_term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-        JOIN wp_terms t ON tt.term_id = t.term_id
-        WHERE p.post_status = 'publish'
-          AND p.post_type = 'post'
-          AND tt.taxonomy = 'category'
-          AND t.name = '神话'
-          order by p.ID
-          """
-
-# 执行查询
-with connection:
-    with connection.cursor() as cursor:
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        article_urls = [row['post_url'] for row in result]
-
 # 初始化 OpenAI 客户端
 client = OpenAI(api_key=api_key, base_url=base_url)
-
 # 读取系统提示词
 with open('system_prompt.md', "rt", encoding="utf-8") as f:
     system_prompt = f.read().strip()
@@ -196,5 +206,5 @@ with open('system_prompt.md', "rt", encoding="utf-8") as f:
 write_lock = threading.Lock()
 
 processed = load_processed_urls()
-
-save_dataset(article_urls[20:], output_file, max_workers=10)
+article_urls = load_urls('神话')
+save_dataset(article_urls, output_file, max_workers=10)

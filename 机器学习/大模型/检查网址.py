@@ -22,7 +22,6 @@ processed_urls = load_urls_from_file(processed_urls_file)
 # 计算差集
 missing_in_processed = original_urls - processed_urls
 missing_in_dataset = original_urls - dataset_urls
-extra_in_dataset = dataset_urls - original_urls
 in_processed_not_in_dataset = processed_urls - dataset_urls
 
 # 输出报告
@@ -43,18 +42,12 @@ if missing_in_dataset:
     for url in sorted(missing_in_dataset):
         print(url)
 
-# 3. 数据集中多出的链接
-if extra_in_dataset:
-    print(f"\n⚠️ 数据集中多余的链接（非原始文章）（{len(extra_in_dataset)}）:")
-    for url in sorted(extra_in_dataset):
-        print(url)
-
-# 4. processed.txt 中有，但数据集中没有（可能处理失败）
+# 3. processed.txt 中有，但数据集中没有（可能处理失败）
 if in_processed_not_in_dataset:
     print(f"\n⚠️ 标记为已处理但数据集中缺失的链接（{len(in_processed_not_in_dataset)}）:")
     for url in sorted(in_processed_not_in_dataset):
         print(url)
 
-# 5. 完整一致
-if not (missing_in_processed or missing_in_dataset or extra_in_dataset or in_processed_not_in_dataset):
+# 4. 完整一致
+if not (missing_in_processed or missing_in_dataset or in_processed_not_in_dataset):
     print("\n✅ 所有链接完全一致，无遗漏或冗余！")
