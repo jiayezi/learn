@@ -1,21 +1,23 @@
 import json
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 import requests
 from bs4 import BeautifulSoup
 import pymysql
 from openai import OpenAI
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
 
 
 with open('config.json') as f:
     cfg = json.load(f)
 
 # 全局参数
+category_name = '文化'  # 分类名称
 CHUNK_SIZE = 800  # 每段最多 800 字
 SLEEP_TIME = 1    # 每篇文章之间休眠时间
-original_urls_file = 'original_urls.txt'
-processed_urls_file = "processed_urls.txt"  # 已处理的网址列表
+original_urls_file = f'original_urls {category_name}.txt'
+processed_urls_file = f"processed_urls {category_name}.txt"  # 已处理的网址列表
 
 # api_key = cfg['DEEPSEEK_API_KEY']
 # base_url="https://api.deepseek.com"
@@ -24,7 +26,7 @@ processed_urls_file = "processed_urls.txt"  # 已处理的网址列表
 base_url="https://api.laozhang.ai/v1"
 api_key = cfg['OpenAI_API_KEY']
 model="gpt-4o"
-output_file = "重新提取.md"
+output_file = f"dataset_gpt-4o {category_name} 原始.md"
 
 
 def load_urls(category):
@@ -147,9 +149,9 @@ def process_article_chunks(chunks):
         {"role": "system", "content": system_prompt}
     ]
     all_output = []
-    chunks_num = len(chunks)
+    # chunks_num = len(chunks)
     for i, chunk in enumerate(chunks):
-        print(f'[处理片段] {i + 1}/{chunks_num}: {chunk[:50] + '...'}')  # 打印片段前50个字符
+        # print(f'[处理片段] {i + 1}/{chunks_num}: {chunk[:50] + '...'}')  # 打印片段前50个字符
         messages.append({"role": "user", "content": f"【文章片段开始】\n{chunk}\n【文章片段结束】"})
         response = client.chat.completions.create(
             model=model,
@@ -168,7 +170,7 @@ def process_article_chunks(chunks):
 
 # 处理单个文章链接
 def process_single_article(url):
-    if url in processed:
+    if url in processed_urls:
         return None
     print(f"[处理] 正在处理: {url}")
     article_text = extract_article_text(url)
@@ -177,6 +179,7 @@ def process_single_article(url):
     chunks = split_into_chunks(article_text)
     qa_outputs = process_article_chunks(chunks)
     save_processed_url(url)
+    time.sleep(SLEEP_TIME)  # 每篇文章之间休眠一段时间，避免请求过快
     return {"url": url, "qa_outputs": qa_outputs}
 
 # 批量保存数据集到文件
@@ -190,7 +193,7 @@ def save_dataset(urls, output_path, max_workers):
                 if not result:
                     continue
                 with write_lock:
-                    f.write(f"# 来源文章: {result['url']}\n")
+                    f.write(f"# 来源地址: {result['url']}\n")
                     for qa in result['qa_outputs']:
                         f.write(qa + "\n\n")
                     f.flush()
@@ -205,6 +208,9 @@ with open('system_prompt.md', "rt", encoding="utf-8") as f:
 
 write_lock = threading.Lock()
 
-processed = load_processed_urls()
-article_urls = load_urls('神话')
-save_dataset(article_urls, output_file, max_workers=10)
+processed_urls = load_processed_urls()
+article_urls = load_urls(category_name)
+print('已加载原始文章链接:', len(article_urls))
+save_dataset(article_urls[40:], output_file, max_workers=10)
+
+# 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”等客观描述词，如果有的话，可能需要手动删除或替换为更合适的描述。

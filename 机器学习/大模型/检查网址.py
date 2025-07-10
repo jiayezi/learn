@@ -3,16 +3,16 @@ import re
 def extract_urls_from_dataset(dataset_path):
     with open(dataset_path, 'r', encoding='utf-8') as f:
         content = f.read()
-    return set(re.findall(r'# 来源文章:\s*(https?://[^\s]+)', content))
+    return set(re.findall(r'# 来源地址:\s*(https?://[^\s]+)', content))
 
 def load_urls_from_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         return set(line.strip() for line in f if line.strip())
 
 # 路径配置
-original_urls_file = 'original_urls.txt'
-dataset_file = 'dataset_gpt-4o.md'
-processed_urls_file = 'processed_urls.txt'
+original_urls_file = 'original_urls 本质.txt'
+dataset_file = 'dataset_gpt-4o 本质 原始.md'
+processed_urls_file = 'processed_urls 本质.txt'
 
 # 加载三类链接
 original_urls = load_urls_from_file(original_urls_file)
