@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from random import randint
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import requests
@@ -116,7 +117,7 @@ def split_into_chunks(text, max_chars=CHUNK_SIZE):
     num_chunks = 2
     while total_len / num_chunks > max_chars:
         num_chunks += 1
-    approx_len = total_len // num_chunks
+    approx_len = (total_len // num_chunks) + randint(-50, 50)  # 增加随机性，避免同一篇文章每次分割结果完全一样
 
     paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
     chunks = []
