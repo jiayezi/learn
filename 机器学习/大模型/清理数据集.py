@@ -14,9 +14,10 @@ def clean_content(raw_text):
 
 
 if __name__ == "__main__":
-    file_path = 'dataset_gpt-4o 本质 原始.md'
-    with open(file_path, 'rt', encoding='utf-8') as f:
-        content = clean_content(f.read())
-    file_path_new = 'dataset_gpt-4o 本质 清理.md'
-    with open(file_path_new, 'wt', encoding='utf-8') as f:
-        f.write(content)
+    file_path_list = ['dataset_gpt-4o 神话.md','dataset_gpt-4o 本质.md','dataset_gpt-4o 文化.md']
+    for file_path in file_path_list:
+        with open(file_path, 'rt', encoding='utf-8') as f:
+            content = clean_content(f.read())
+        file_path_new = f'{file_path[:-3]}_cleaned.md'
+        with open(file_path_new, 'wt', encoding='utf-8') as f:
+            f.write(content)

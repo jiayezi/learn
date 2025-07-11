@@ -4,7 +4,7 @@ import re
 
 def clean_content(raw_text):
     # 去除 "# 来源文章" 标记
-    raw_text = re.sub(r'# 来源文章:.*', '', raw_text)
+    raw_text = re.sub(r'# 来源地址:.*', '', raw_text)
 
     # 去除 markdown 分割线
     raw_text = re.sub(r'^---$', '', raw_text, flags=re.MULTILINE)
@@ -46,8 +46,8 @@ def save_to_json(data, output_path):
 
 
 # 示例用法（按需修改路径）
-input_file = 'dataset_gpt-4o.md'
-output_file = 'train_llama_factory_single.json'
+input_file = 'dataset_gpt-4o_cleaned.md'
+output_file = 'train_single.json'
 
 parsed = parse_markdown_qa_single_turn(input_file)
 save_to_json(parsed, output_file)
