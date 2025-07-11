@@ -213,4 +213,4 @@ article_urls = load_urls(category_name)
 print('已加载原始文章链接:', len(article_urls))
 save_dataset(article_urls[40:], output_file, max_workers=10)
 
-# 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”等客观描述词，如果有的话，可能需要手动删除或替换为更合适的描述。
+# 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”等客观描述词，如果有的话，需要转换为更合适的描述。
