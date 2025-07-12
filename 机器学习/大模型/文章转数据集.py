@@ -17,17 +17,18 @@ with open('config.json') as f:
 category_name = '文化'  # 分类名称
 CHUNK_SIZE = 800  # 每段最多 800 字
 SLEEP_TIME = 1    # 每篇文章之间休眠时间
-original_urls_file = f'original_urls {category_name}.txt'
-processed_urls_file = f"processed_urls {category_name}.txt"  # 已处理的网址列表
+original_urls_file = f'output/original_urls {category_name}.txt'
+processed_urls_file = f"output/processed_urls {category_name}.txt"  # 已处理的网址列表
 
+# API和输出文件配置（gpt-4o速度快，答案丰富，价格贵。deepseek速度慢，答案较少，价格便宜）
 # api_key = cfg['DEEPSEEK_API_KEY']
 # base_url="https://api.deepseek.com"
 # model="deepseek-chat"
-# output_file = "dataset_deepseek.md"
+# output_file = f"output/dataset_deepseek {category_name}.md"
 base_url="https://api.laozhang.ai/v1"
 api_key = cfg['OpenAI_API_KEY']
 model="gpt-4o"
-output_file = f"dataset_gpt-4o {category_name} 原始.md"
+output_file = f"output/dataset_gpt-4o {category_name}.md"
 
 
 def load_urls(category):
@@ -212,6 +213,8 @@ write_lock = threading.Lock()
 processed_urls = load_processed_urls()
 article_urls = load_urls(category_name)
 print('已加载原始文章链接:', len(article_urls))
-save_dataset(article_urls[40:], output_file, max_workers=10)
+save_dataset(article_urls, output_file, max_workers=10)
 
-# 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”等客观描述词，如果有的话，需要转换为更合适的描述。
+# 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”、“背景知识”等客观描述词，如果有的话，需要转换为更合适的描述。
+# 还要检查问句中是否有“那个”、“这些”等模糊指代词，如果有的话，需要转换为更明确的描述。
+# 还要检查问句中的“问”是否被写成了“筑/筴/闯/闏”这些笔画复杂、相似度高的字，否则在解析时会出现混乱。

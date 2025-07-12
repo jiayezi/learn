@@ -10,9 +10,10 @@ def load_urls_from_file(file_path):
         return set(line.strip() for line in f if line.strip())
 
 # 路径配置
-original_urls_file = 'original_urls 本质.txt'
-dataset_file = 'dataset_gpt-4o 本质 原始.md'
-processed_urls_file = 'processed_urls 本质.txt'
+category_name = '文化'
+original_urls_file = f'output/original_urls {category_name}.txt'
+processed_urls_file = f'output/processed_urls {category_name}.txt'
+dataset_file = f'output/dataset_gpt-4o {category_name}.md'
 
 # 加载三类链接
 original_urls = load_urls_from_file(original_urls_file)

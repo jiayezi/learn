@@ -15,12 +15,16 @@ def clean_content(raw_text):
     return raw_text.strip()
 
 
-def parse_markdown_qa_single_turn(file_path):
-    with open(file_path, 'rt', encoding='utf-8') as f:
-        content = clean_content(f.read())
+def parse_markdown_qa_single_turn(input_file_list):
+    content = ''
+    for input_file in input_file_list:
+        with open(input_file, 'rt', encoding='utf-8') as f:
+            content += f.read() + '\n\n'
+
+    content_cleaned = clean_content(content)
 
     # 匹配所有问答对（Markdown格式）
-    qa_blocks = re.findall(r'### 问\s*(.*?)\n+### 答\s*(.*?)(?=\n### 问|\Z)', content, re.DOTALL)
+    qa_blocks = re.findall(r'### 问\s*(.*?)\n+### 答\s*(.*?)(?=\n### 问|\Z)', content_cleaned, re.DOTALL)
 
     parsed_data = []
 
@@ -46,9 +50,11 @@ def save_to_json(data, output_path):
 
 
 # 示例用法（按需修改路径）
-input_file = 'dataset_gpt-4o_cleaned.md'
-output_file = 'train_single.json'
+input_file_list = ['output/dataset_gpt-4o 神话.md','output/dataset_gpt-4o 本质.md','output/dataset_gpt-4o 文化.md']
+output_file = 'output/train_single.json'
 
-parsed = parse_markdown_qa_single_turn(input_file)
+parsed = parse_markdown_qa_single_turn(input_file_list)
 save_to_json(parsed, output_file)
 print(f"✅ 单轮问答格式转换完成，共生成 {len(parsed)} 条样本：{output_file}")
+
+# 解析后要检查生成的 JSON 文件中是否还有“###”，如果有的话，说明原始 Markdown 中还有错误的格式，导致部分问答对未处理。
