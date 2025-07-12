@@ -7,33 +7,49 @@ import threading
 import requests
 from bs4 import BeautifulSoup
 import pymysql
-from openai import OpenAI
-
+from google import genai
+from google.genai import types
 
 with open('config.json') as f:
     cfg = json.load(f)
 
 # 全局参数
-category_name = '神话'  # 分类名称
+category_name = '本质'  # 分类名称
 CHUNK_SIZE = 800  # 每段最多 800 字
 SLEEP_TIME = 1    # 每篇文章之间休眠时间
 original_urls_file = f'output/original_urls {category_name}.txt'
 processed_urls_file = f"output/processed_urls {category_name}.txt"  # 已处理的网址列表
 
-# API和输出文件配置（gpt-4o速度快，答案丰富，价格贵。deepseek速度慢，答案较少，价格便宜）
-# api_key = cfg['DEEPSEEK_API_KEY']
-# base_url="https://api.deepseek.com"
-# model_name="deepseek-chat" # deepseek提取的数据集质量很低，容易胡乱编造。
-
-base_url="https://api.laozhang.ai/v1"
-api_key = cfg['OpenAI_API_KEY']
-model_name= "gpt-4o"
-
-# base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-# api_key = cfg['Gemini_API_KEY']
-# model_name="gemini-2.5-flash"
+# API和输出文件配置
+base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+api_key = cfg['Gemini_API_KEY']
+model_name="gemini-2.5-flash"
 
 output_file = f"output/dataset_{model_name} {category_name}.md"
+
+
+def throttle_api_call():
+    """
+    限制API调用频率，确保每分钟最多CALL_LIMIT次调用。
+    """
+    with call_lock:
+        current_time = time.time()
+        # 只关心最近 60 秒内的调用次数，如果最早的一次调用发生在 60 秒前，就从列表里移除它。
+        while call_timestamps and current_time - call_timestamps[0] >= CALL_INTERVAL:
+            call_timestamps.pop(0)
+
+        # 如果当前调用次数已经达到限制，就计算需要等待的时间，然后休眠。
+        if len(call_timestamps) >= CALL_LIMIT:
+            sleep_time = CALL_INTERVAL - (current_time - call_timestamps[0])
+            print(f"[限速] 等待 {sleep_time:.1f} 秒以满足API调用限制")
+            time.sleep(sleep_time+1)
+            # 等待了一段时间，当前时间变了，所以再次清理一下列表中过期的调用记录。
+            current_time = time.time()
+            while call_timestamps and current_time - call_timestamps[0] >= CALL_INTERVAL:
+                call_timestamps.pop(0)
+
+        # 最后，记录这次调用的时间，加入调用记录列表中。
+        call_timestamps.append(time.time())
 
 def load_urls(category):
     if os.path.exists(original_urls_file):
@@ -151,26 +167,18 @@ def split_into_chunks(text, max_chars=CHUNK_SIZE):
 
 # 向模型发送请求，保持上下文对话
 def process_article_chunks(chunks):
-    messages = [
-        {"role": "system", "content": system_prompt}
-    ]
     all_output = []
-    # chunks_num = len(chunks)
+    chat = client.chats.create(model=model_name,
+                               config=types.GenerateContentConfig(
+        system_instruction=system_prompt,
+        temperature=0.9,
+        top_p=1,
+        max_output_tokens=4096,
+        thinking_config=types.ThinkingConfig(thinking_budget=0)))
     for i, chunk in enumerate(chunks):
-        # print(f'[处理片段] {i + 1}/{chunks_num}: {chunk[:50] + '...'}')  # 打印片段前50个字符
-        messages.append({"role": "user", "content": f"【文章片段开始】\n{chunk}\n【文章片段结束】"})
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            stream=False,           # 静态数据处理关闭流式输出，更方便直接获取完整结果。
-            temperature = 0.9,      # 控制生成多样性。(使用gpt-4o时，temperature达到1.3会出现乱码)
-            top_p=1,                # 控制词汇采样范围。 保持为1，控制随机性的主要用 temperature
-            presence_penalty=0.0,   # 设置为正值会鼓励模型不要一味重复已有内容，稍微鼓励输出更多不同信息
-            frequency_penalty=0.0,  # 不抑制重复（因为问答结构重复是正常的）
-            max_tokens = 4096       # 设置为 2048 或更高，以免回答被截断
-        )
-        reply = response.choices[0].message.content.strip()
-        messages.append({"role": "assistant", "content": reply})
+        throttle_api_call()
+        response = chat.send_message(f"【文章片段开始】\n{chunk}\n【文章片段结束】")
+        reply = response.text.strip()
         all_output.append(reply)
     return all_output
 
@@ -206,18 +214,25 @@ def save_dataset(urls, output_path, max_workers):
     print(f"\n🎉 所有文章处理完成，数据已保存到：{output_path}")
 
 
-# 初始化 OpenAI 客户端
-client = OpenAI(api_key=api_key, base_url=base_url)
+# 初始化 genai 客户端
+client = genai.Client(api_key=api_key)
+
 # 读取系统提示词
 with open('system_prompt.md', "rt", encoding="utf-8") as f:
     system_prompt = f.read().strip()
+
+# 请求节流控制（每分钟最多10次）
+CALL_LIMIT = 10
+CALL_INTERVAL = 60  # 秒
+call_timestamps = []
+call_lock = threading.Lock()
 
 write_lock = threading.Lock()
 
 processed_urls = load_processed_urls()
 article_urls = load_urls(category_name)
 print('已加载原始文章链接:', len(article_urls))
-save_dataset(article_urls, output_file, max_workers=10)
+save_dataset(article_urls[:25], output_file, max_workers=1)
 
 # 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”、“背景知识”等客观描述词，如果有的话，需要转换为更合适的描述。
 # 还要检查问句中是否有“那个”、“这些”等模糊指代词，如果有的话，需要转换为更明确的描述。

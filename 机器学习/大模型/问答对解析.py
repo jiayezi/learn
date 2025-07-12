@@ -51,7 +51,7 @@ def save_to_json(data, output_path):
 
 # 示例用法（按需修改路径）
 input_file_list = ['output/dataset_gpt-4o 神话.md','output/dataset_gpt-4o 本质.md','output/dataset_gpt-4o 文化.md']
-output_file = 'output/train_single.json'
+output_file = 'output/train.json'
 
 parsed = parse_markdown_qa_single_turn(input_file_list)
 save_to_json(parsed, output_file)
