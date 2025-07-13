@@ -14,7 +14,7 @@ with open('config.json') as f:
     cfg = json.load(f)
 
 # 全局参数
-category_name = '本质'  # 分类名称
+category_name = '文化'  # 分类名称
 CHUNK_SIZE = 800  # 每段最多 800 字
 SLEEP_TIME = 1    # 每篇文章之间休眠时间
 original_urls_file = f'output/original_urls {category_name}.txt'
@@ -171,7 +171,7 @@ def process_article_chunks(chunks):
     chat = client.chats.create(model=model_name,
                                config=types.GenerateContentConfig(
         system_instruction=system_prompt,
-        temperature=0.9,
+        temperature=1,
         top_p=1,
         max_output_tokens=4096,
         thinking_config=types.ThinkingConfig(thinking_budget=0)))
@@ -232,7 +232,7 @@ write_lock = threading.Lock()
 processed_urls = load_processed_urls()
 article_urls = load_urls(category_name)
 print('已加载原始文章链接:', len(article_urls))
-save_dataset(article_urls[:25], output_file, max_workers=1)
+save_dataset(article_urls[50:], output_file, max_workers=2)
 
 # 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”、“背景知识”等客观描述词，如果有的话，需要转换为更合适的描述。
 # 还要检查问句中是否有“那个”、“这些”等模糊指代词，如果有的话，需要转换为更明确的描述。
