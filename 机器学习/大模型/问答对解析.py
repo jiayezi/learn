@@ -49,9 +49,10 @@ def save_to_json(data, output_path):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-input_file_list = ['output/dataset_gpt-4o 神话.md','output/dataset_gpt-4o 本质.md','output/dataset_gpt-4o 文化.md']
+model_name="gemini-2.5-flash"
+input_file_list = [f'output/dataset_{model_name} 神话.md',f'output/dataset_{model_name} 本质.md',f'output/dataset_{model_name} 文化.md']
 parsed = parse_markdown_qa_single_turn(input_file_list)
-output_file = f'output/train_single_{len(parsed)}.json'
+output_file = f'output/train_{model_name}_single_qa{len(parsed)}.json'
 save_to_json(parsed, output_file)
 print(f"✅ 单轮问答格式转换完成：{output_file}")
 

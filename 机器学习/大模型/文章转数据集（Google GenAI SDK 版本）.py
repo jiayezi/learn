@@ -232,7 +232,7 @@ write_lock = threading.Lock()
 processed_urls = load_processed_urls()
 article_urls = load_urls(category_name)
 print('已加载原始文章链接:', len(article_urls))
-save_dataset(article_urls[50:], output_file, max_workers=2)
+save_dataset(article_urls[50:], output_file, max_workers=1)
 
 # 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”、“背景知识”等客观描述词，如果有的话，需要转换为更合适的描述。
 # 还要检查问句中是否有“那个”、“这些”等模糊指代词，如果有的话，需要转换为更明确的描述。
