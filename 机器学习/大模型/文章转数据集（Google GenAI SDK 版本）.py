@@ -173,7 +173,7 @@ def process_article_chunks(chunks):
         system_instruction=system_prompt,
         temperature=1,
         top_p=1,
-        max_output_tokens=4096,
+        max_output_tokens=2048,
         thinking_config=types.ThinkingConfig(thinking_budget=0)))
     for i, chunk in enumerate(chunks):
         throttle_api_call()
@@ -234,6 +234,6 @@ article_urls = load_urls(category_name)
 print('已加载原始文章链接:', len(article_urls))
 save_dataset(article_urls[50:], output_file, max_workers=1)
 
-# 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”、“背景知识”等客观描述词，如果有的话，需要转换为更合适的描述。
+# 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“他认为”、“背景知识”等客观描述词，如果有的话，需要转换为更合适的描述。
 # 还要检查问句中是否有“那个”、“这些”等模糊指代词，如果有的话，需要转换为更明确的描述。
 # 还要检查问句中的“问”是否被写成了“筑/筴/闯/闏”这些笔画复杂、相似度高的字，否则在解析时会出现混乱。

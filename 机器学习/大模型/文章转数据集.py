@@ -14,7 +14,7 @@ with open('config.json') as f:
     cfg = json.load(f)
 
 # 全局参数
-category_name = '神话'  # 分类名称
+category_name = '文化'  # 分类名称
 CHUNK_SIZE = 800  # 每段最多 800 字
 SLEEP_TIME = 1    # 每篇文章之间休眠时间
 original_urls_file = f'output/original_urls {category_name}.txt'
@@ -27,7 +27,7 @@ processed_urls_file = f"output/processed_urls {category_name}.txt"  # 已处理�
 
 base_url="https://api.laozhang.ai/v1"
 api_key = cfg['OpenAI_API_KEY']
-model_name= "gpt-4o"
+model_name= "gpt-4.1"
 
 # base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 # api_key = cfg['Gemini_API_KEY']
@@ -167,7 +167,7 @@ def process_article_chunks(chunks):
             top_p=1,                # 控制词汇采样范围。 保持为1，控制随机性的主要用 temperature
             presence_penalty=0.0,   # 设置为正值会鼓励模型不要一味重复已有内容，稍微鼓励输出更多不同信息
             frequency_penalty=0.0,  # 不抑制重复（因为问答结构重复是正常的）
-            max_tokens = 4096       # 设置为 2048 或更高，以免回答被截断
+            max_tokens = 2048       # 设置为 2048 或更高，以免回答被截断
         )
         reply = response.choices[0].message.content.strip()
         messages.append({"role": "assistant", "content": reply})
@@ -219,6 +219,6 @@ article_urls = load_urls(category_name)
 print('已加载原始文章链接:', len(article_urls))
 save_dataset(article_urls, output_file, max_workers=10)
 
-# 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“提到”、“他认为”、“背景知识”等客观描述词，如果有的话，需要转换为更合适的描述。
+# 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“他认为”、“背景知识”等客观描述词，如果有的话，需要转换为更合适的描述。
 # 还要检查问句中是否有“那个”、“这些”等模糊指代词，如果有的话，需要转换为更明确的描述。
 # 还要检查问句中的“问”是否被写成了“筑/筴/闯/闏”这些笔画复杂、相似度高的字，否则在解析时会出现混乱。

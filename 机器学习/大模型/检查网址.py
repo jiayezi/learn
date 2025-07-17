@@ -11,9 +11,10 @@ def load_urls_from_file(file_path):
 
 # 路径配置
 category_name = '文化'
+model_name= "gpt-4.1"
 original_urls_file = f'output/original_urls {category_name}.txt'
 processed_urls_file = f'output/processed_urls {category_name}.txt'
-dataset_file = f'output/dataset_gpt-4o {category_name}.md'
+dataset_file = f'output/dataset_{model_name} {category_name}.md'
 
 # 加载三类链接
 original_urls = load_urls_from_file(original_urls_file)

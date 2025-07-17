@@ -49,8 +49,9 @@ def save_to_json(data, output_path):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-model_name="gemini-2.5-flash"
+model_name="gpt-4.1"
 input_file_list = [f'output/dataset_{model_name} 神话.md',f'output/dataset_{model_name} 本质.md',f'output/dataset_{model_name} 文化.md']
+print(input_file_list)
 parsed = parse_markdown_qa_single_turn(input_file_list)
 output_file = f'output/train_{model_name}_single_qa{len(parsed)}.json'
 save_to_json(parsed, output_file)
