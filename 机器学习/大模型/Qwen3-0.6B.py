@@ -59,9 +59,9 @@ while True:
     # 模型生成回复
     generated_ids = model.generate(
         **model_inputs,
-        max_new_tokens=2048, # 生成的最大token数。一个 token 可能对应多个字符，生成中文时，一个 token 可能对应一个汉字
+        max_new_tokens=2048, # 生成的最大token数
         do_sample=True, # 是否启用随机采样（非确定性生成）
-        temperature=0.7 # 控制采样的随机性程度
+        temperature=1 # 控制采样的随机性程度
     )
     output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist()
 
@@ -77,7 +77,6 @@ while True:
     # 输出回复
     print("\nAI：", content)
     print('---------------------------------------------------')
-    print([content])
 
     messages = messages[-10:]  # 保留最近5轮问答（user+assistant）
     # 添加AI的回复到对话历史
