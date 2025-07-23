@@ -115,9 +115,9 @@ def rag_query(user_query, top_k=5):
 
     # 拼接提示词
     context = "\n\n".join([f"{i+1}. {doc}" for i, doc in enumerate(relevant_docs)])
-    prompt = f"""请你扮演一个博学多才的史学家和文学家，假设你写过很多记载远古历史、社会现状和文化的文章。请根据以下信息回答读者问题（模拟作者本人回答）。
+    prompt = f"""请你扮演一个博学多才的史学家和文学家，假设你写过很多记载远古历史、社会现状和文化的文章。请根据以下信息回答读者问题。
 
-参考信息：
+以下是可能与读者问题相关的参考信息：
 {context}
 
 读者问题：{user_query}"""

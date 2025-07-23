@@ -1,6 +1,6 @@
 import json
 
-json_list = ['output/train_gpt-4.1_single_qa4077.json', 'output/train_gpt-4o_single_qa3608.json']
+json_list = ['output/train_gpt-4.1_single_qa4079.json', 'output/train_gpt-4o_single_qa3609.json']
 
 # 合并
 merged_data = []

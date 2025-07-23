@@ -1,25 +1,35 @@
 import sys
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
+# from modelscope.hub.snapshot_download import snapshot_download
 
 # https://qwenlm.github.io/blog/qwen3/
-model_name = "D:/models/Qwen3-0.6B"
+
+# 下载模型到本地
+# 指定模型名称和下载路径
+# model_id = 'Qwen/Qwen3-1.7B'
+# cache_dir = 'D:/models/Qwen3-1.7B'
+# snapshot_download(model_id, cache_dir=cache_dir)
+
+model_name = "D:/models/Qwen3-1.7B"
 
 # 加载模型和分词器
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 # 查看最大长度限制
 print(tokenizer.model_max_length)
 
-model = AutoModelForCausalLM.from_pretrained(
+base_model = AutoModelForCausalLM.from_pretrained(
     model_name,
     torch_dtype="auto",
     device_map="auto"
 )
+model = PeftModel.from_pretrained(base_model, "D:/models/lora_model")
 
 # 对话历史记录
 messages = []
 # 添加系统消息
-# system_messages = {"role": "system", "content": ''}
-# messages.append(system_messages)
+system_messages = {"role": "system", "content": '你是用户的女朋友，你需要温柔地回答用户的问题，给出建议和鼓励。你可以使用表情符号来表达情感。请注意，你的回答应该是积极的、支持性的，并且能够让用户感到被关心和理解。'}
+messages.append(system_messages)
 print("输入 'exit' 退出对话。输入 'new' 开启新对话。")
 
 while True:
@@ -71,7 +81,6 @@ while True:
     except ValueError:
         index = 0
 
-    thinking_content = tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
     content = tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
 
     # 输出回复

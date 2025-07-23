@@ -48,14 +48,12 @@ def save_to_json(data, output_path):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-model_name="gpt-4.1"
+model_name="gpt-4o"
 input_file_list = [f'output/dataset_{model_name} 神话.md',f'output/dataset_{model_name} 本质.md',f'output/dataset_{model_name} 文化.md']
-print(input_file_list)
 parsed = parse_markdown_qa_single_turn(input_file_list)
 output_file = f'output/train_{model_name}_single_qa{len(parsed)}.json'
 save_to_json(parsed, output_file)
 print(f"✅ 单轮问答格式转换完成：{output_file}")
 
-# todo 多轮问答格式转换
 
 # 解析后要检查生成的 JSON 文件中是否还有“###”，如果有的话，说明原始 Markdown 中还有错误的格式，导致部分问答对未处理。
