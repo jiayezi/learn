@@ -26,7 +26,7 @@ def list_models():
         "object": "list",
         "data": [
             {
-                "id": "local",
+                "id": "local_AI",
                 "object": "model",
                 "owned_by": "local-user",
             }
@@ -81,3 +81,6 @@ def chat_completions(request: ChatRequest):
                 "total_tokens": 0
             }
         }
+
+
+# API地址：http://localhost:8000/v1
