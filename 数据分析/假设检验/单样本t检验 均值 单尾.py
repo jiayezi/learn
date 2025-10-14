@@ -12,8 +12,8 @@ import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
 
-# 设置字体（SimHei 支持中文）
-plt.rcParams['font.family'] = 'SimHei'
+# 设置支持中文的字体
+plt.rcParams['font.family'] = 'Microsoft YaHei'
 # 解决负号'-'显示为方块的问题
 plt.rcParams['axes.unicode_minus'] = False
 
@@ -34,6 +34,7 @@ df = n - 1
 sample_mean = np.mean(data)
 # 样本标准差（使用 n-1 作为自由度）
 sample_std = np.std(data, ddof=1)
+# 标准误
 standard_error = sample_std / np.sqrt(n)
 # 计算t统计量
 t_stat = (sample_mean - popmean) / standard_error

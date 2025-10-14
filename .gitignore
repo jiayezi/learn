@@ -161,4 +161,6 @@ cython_debug/
 
 # 用户自定义的忽略规则
 test*
-/机器学习/大模型/config.json
+机器学习/
+.cursor/
+.vscode/

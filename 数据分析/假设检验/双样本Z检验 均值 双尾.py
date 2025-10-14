@@ -60,6 +60,7 @@ plt.fill_between(x, y, where=(x < -z_critical) | (x > z_critical), color='red', 
 plt.axvline(z_score, color='orange', linestyle='--', label=f'Z值 = {z_score:.4f}')
 # 绘制临界值
 plt.axvline(z_critical, color='red', linestyle=':', label=f'临界值 = {z_critical:.4f}')
+plt.axvline(-z_critical, color='red', linestyle=':')
 
 # 添加图例和标题
 plt.title('单样本Z检验（双尾）')

@@ -13,8 +13,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 
-# 设置字体（SimHei 支持中文）
-plt.rcParams['font.family'] = 'SimHei'
+# 设置支持中文的字体
+plt.rcParams['font.family'] = 'Microsoft YaHei'
 # 解决负号'-'显示为方块的问题
 plt.rcParams['axes.unicode_minus'] = False
 
