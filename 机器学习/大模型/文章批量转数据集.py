@@ -4,7 +4,6 @@ import time
 from random import randint
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
-import requests
 from bs4 import BeautifulSoup
 import pymysql
 from openai import OpenAI
@@ -17,8 +16,7 @@ with open('config.json') as f:
 category_name = '文化'  # 分类名称
 CHUNK_SIZE = 800  # 每段最多 800 字
 SLEEP_TIME = 1    # 每篇文章之间休眠时间
-original_urls_file = f'output/original_urls {category_name}.txt'
-processed_urls_file = f"output/processed_urls {category_name}.txt"  # 已处理的网址列表
+processed_urls_file = f"output/processed_urls {category_name}.txt"  # 已处理的文章ID列表
 
 # API和输出文件配置（gpt-4o速度快，答案丰富，价格贵。deepseek速度慢，答案较少，价格便宜）
 # api_key = cfg['DEEPSEEK_API_KEY']
@@ -35,11 +33,7 @@ model_name= "gpt-4.1"
 
 output_file = f"output/dataset_{model_name} {category_name}.md"
 
-def load_urls(category):
-    if os.path.exists(original_urls_file):
-        with open(original_urls_file, "rt", encoding="utf-8") as f:
-            return [line.strip() for line in f if line.strip()]
-
+def load_articles(category):
     # 构建数据库连接信息
     connection = pymysql.connect(
         host=cfg['db_host'],
@@ -51,8 +45,8 @@ def load_urls(category):
         cursorclass=pymysql.cursors.DictCursor  # 返回字典类型结果
     )
 
-    # SQL 获取某个分类的所有文章链接
-    sql = f"""SELECT CONCAT('https://jiayezi.cn/archives/', p.ID) AS post_url
+    # SQL 获取某个分类的所有文章内容
+    sql = f"""SELECT p.ID, post_title, post_content
             FROM wp_posts p
             JOIN wp_term_relationships tr ON p.ID = tr.object_id
             JOIN wp_term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
@@ -68,48 +62,41 @@ def load_urls(category):
         with connection.cursor() as cursor:
             cursor.execute(sql)
             result = cursor.fetchall()
-            article_urls = [row['post_url'] for row in result]
+            # 返回文章ID、标题和内容的列表
+            articles = [{'id': row['ID'], 'title': row['post_title'], 'content': row['post_content']} for row in result]
 
-    # 保存原始链接到文件
-    urls_text = "\n".join(article_urls)
-    with open(original_urls_file, "wt", encoding="utf-8") as f:
-        f.write(urls_text)
+    return articles
 
-    return article_urls
-
-# 读取已处理的网址
+# 读取已处理的文章ID
 def load_processed_urls():
     if not os.path.exists(processed_urls_file):
         return set()
     with open(processed_urls_file, "r", encoding="utf-8") as f:
         return set(line.strip() for line in f if line.strip())
 
-# 保存新处理的网址
-def save_processed_url(url):
+# 保存新处理的文章ID
+def save_processed_url(article_id):
     with open(processed_urls_file, "a", encoding="utf-8") as f:
-        f.write(url + "\n")
+        f.write(article_id + "\n")
 
 
-# 从网页提取正文内容
-def extract_article_text(url):
-    try:
-        headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-
-        soup = BeautifulSoup(response.text, "html.parser")
-        content_div = soup.find("div", class_="entry-content clear")
-        if not content_div:
-            print(f"[跳过] 找不到正文内容: {url}")
-            return ""
-
-        text = content_div.get_text().strip()
-        while "\n\n" in text:
-            text = text.replace("\n\n", "\n")
-        return text
-    except Exception as e:
-        print(f"[错误] 提取失败: {url}\n原因: {e}")
+# 从数据库获取文章内容
+def get_article_content(article):
+    """从文章对象中提取并清理内容"""
+    content = article['content']
+    if not content:
+        print(f"[跳过] 文章内容为空: {article['title']} (ID: {article['id']})")
         return ""
+    
+    # 清理HTML标签和多余空白
+    soup = BeautifulSoup(content, "html.parser")
+    text = soup.get_text().strip()
+    
+    # 清理多余的换行符
+    while "\n\n" in text:
+        text = text.replace("\n\n", "\n")
+    
+    return text
 
 
 # 将文章文本尽量平均分成多个片段，每片最多 CHUNK_SIZE 字
@@ -174,24 +161,25 @@ def process_article_chunks(chunks):
         all_output.append(reply)
     return all_output
 
-# 处理单个文章链接
-def process_single_article(url):
-    if url in processed_urls:
+# 处理单篇文章
+def process_single_article(article):
+    article_id = str(article['id'])
+    if article_id in processed_urls:
         return None
-    print(f"[处理] 正在处理: {url}")
-    article_text = extract_article_text(url)
+    print(f"[处理] 正在处理: {article['title']} (ID: {article_id})")
+    article_text = get_article_content(article)
     if not article_text:
         return None
     chunks = split_into_chunks(article_text)
     qa_outputs = process_article_chunks(chunks)
-    save_processed_url(url)
+    save_processed_url(article_id)
     time.sleep(SLEEP_TIME)  # 每篇文章之间休眠一段时间，避免请求过快
-    return {"url": url, "qa_outputs": qa_outputs}
+    return {"id": article_id, "title": article['title'], "qa_outputs": qa_outputs}
 
 # 批量保存数据集到文件
-def save_dataset(urls, output_path, max_workers):
+def save_dataset(articles, output_path, max_workers):
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(process_single_article, url) for url in urls]
+        futures = [executor.submit(process_single_article, article) for article in articles]
 
         with open(output_path, "a", encoding="utf-8") as f:
             for future in as_completed(futures):
@@ -199,7 +187,7 @@ def save_dataset(urls, output_path, max_workers):
                 if not result:
                     continue
                 with write_lock:
-                    f.write(f"# 来源地址: {result['url']}\n")
+                    f.write(f"# 文章标题: {result['title']} (ID: {result['id']})\n")
                     for qa in result['qa_outputs']:
                         f.write(qa + "\n\n")
                     f.flush()
@@ -215,9 +203,9 @@ with open('system_prompt.md', "rt", encoding="utf-8") as f:
 write_lock = threading.Lock()
 
 processed_urls = load_processed_urls()
-article_urls = load_urls(category_name)
-print('已加载原始文章链接:', len(article_urls))
-save_dataset(article_urls, output_file, max_workers=10)
+articles = load_articles(category_name)
+print('已加载文章数量:', len(articles))
+save_dataset(articles, output_file, max_workers=10)
 
 # 处理完毕后，需要检查数据集中是否出现“作者”、“文章”、“文中”、“他认为”、“背景知识”等客观描述词，如果有的话，需要转换为更合适的描述。
 # 还要检查问句中是否有“那个”、“这些”等模糊指代词，如果有的话，需要转换为更明确的描述。
