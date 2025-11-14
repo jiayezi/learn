@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 echo 正在激活 Python 虚拟环境...
 call D:\code\PythonProjects\.venv_3.12\Scripts\activate.bat
 

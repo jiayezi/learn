@@ -30,7 +30,7 @@ class DB:
 
 
 if __name__ == '__main__':
-    with DB(host='120.78.9.140', user='root', passwd='sql', database='myemployees') as db:
-        db.execute('select * from employees')
-        for row in db:
+    with DB(host='120.78.9.140', user='root', passwd='sql', database='myemployees') as cur:
+        cur.execute('select * from employees')
+        for row in cur:
             print(row)
